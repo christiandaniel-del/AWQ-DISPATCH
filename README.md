@@ -46,9 +46,13 @@ Pastikan data Anda selalu yang paling mutakhir.
 - **UTC Clock**: Jam di bagian atas selalu merujuk pada **Zulu Time (UTC)** untuk sinkronisasi operasi penerbangan internasional.
 
 
+<img width="1024" height="1024" alt="occ_system_overview_showcase_1783880919806" src="https://github.com/user-attachments/assets/d2ac3e16-447d-4c1b-9330-d40709039c31" />
 
+<img width="1024" height="1024" alt="flight_board_showcase_1783880829936" src="https://github.com/user-attachments/assets/73bc2c10-abf7-4f1d-afd3-9b420f178edd" />
 
+<img width="1024" height="1024" alt="taf_manager_showcase_1783880874564" src="https://github.com/user-attachments/assets/64bb0451-dfb4-4170-8105-420ab8529153" />
 
+<img width="1024" height="1024" alt="weather_warning_showcase_1783880851548" src="https://github.com/user-attachments/assets/298ea89f-ed02-43bf-a697-aea522f00926" />
 
 #  AWQ-DISPATCH SYSTEM UPDATE LOG - v2.5.0
 
