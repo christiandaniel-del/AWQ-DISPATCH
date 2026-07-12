@@ -1,0 +1,343 @@
+<div id="view-report" class="view-section">
+  <div class="report-control-bar">
+    <div class="rcb-info">
+      <h2 class="header-title">BRIEFING REPORT</h2>
+      <div class="header-sub">
+        SYSTEM READY <span class="sep">|</span> BRIEFING PACKAGE COMPILATION v2.4
+      </div>
+    </div>
+    <div class="rcb-actions" style="display: flex; gap: 12px;">
+      <button class="control-btn" onclick="window.resetReportEngine()">
+        RESET FORM
+      </button>
+      <button class="btn-execute-cbr btn-solid-primary" onclick="window.compileFinalCbr()" id="btn-exec-cbr">
+        INITIATE GENERATION
+      </button>
+    </div>
+  </div>
+  
+  <div class="report-split-container">
+    <div class="report-sidebar">
+      <div class="summary-card">
+        <div class="summary-header">BRIEFING CONTEXT</div>
+        <div class="summary-item">
+          <span class="summary-label">FLIGHTS SELECTED</span>
+          <span class="summary-val" id="report-sum-count">0</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">FLIGHT NUMBERS</span>
+          <div class="summary-list" id="report-sum-flights">NONE</div>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">NOTAM SYNC</span>
+          <span class="summary-val" id="report-sum-notams">0</span>
+        </div>
+        <div class="summary-sep"></div>
+        <div class="summary-item">
+          <span class="summary-label">ENGINE READINESS</span>
+          <span class="summary-val" id="report-sum-status" style="color: var(--status-warning);">AWAITING CONTEXT</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="report-main">
+      <div id="report-status" class="terminal-window" style="display: none;"></div>
+    </div>
+  </div>
+
+  <style>
+    /* =========================================================
+       AWQ BRIEFING TERMINAL (SPLIT PANEL)
+       ========================================================= */
+    .report-control-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--nav-item-bg); 
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-light);
+      padding: 24px 32px; border-radius: var(--radius-lg); 
+      margin-bottom: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+    
+    .report-split-container {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .report-sidebar {
+      position: sticky;
+      top: 120px;
+    }
+
+    .summary-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+
+    .summary-header {
+      font-size: 10px;
+      font-weight: 900;
+      color: var(--accent-primary);
+      letter-spacing: 0.15em;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .summary-item { margin-bottom: 20px; }
+    .summary-label {
+      display: block;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .summary-val {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .summary-list {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-height: 120px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+    .summary-sep { height: 1px; background: var(--border-subtle); margin: 20px 0; }
+
+    .btn-execute-cbr {
+      padding: 0 32px; height: 44px;
+      font-size: 11px; font-weight: 900; 
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* TERMINAL WINDOW */
+    .terminal-window {
+      background: var(--bg-panel-sunken); 
+      border: 1px solid var(--border-light); 
+      border-radius: var(--radius-lg); 
+      padding: 32px; 
+      font-family: var(--font-mono); 
+      font-size: 12.5px; line-height: 1.7; 
+      min-height: 480px; max-height: 650px; 
+      overflow-y: auto; color: var(--text-primary); 
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.3);
+      position: relative;
+    }
+    .terminal-window::after {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 100% 3px;
+      pointer-events: none;
+      opacity: 0.2;
+    }
+    
+    .terminal-header {
+      color: var(--accent-primary); font-weight: 900; margin-bottom: 24px;
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px;
+      opacity: 0.8;
+    }
+
+    .terminal-line { 
+      display: flex; gap: 14px; padding: 4px 0; 
+      animation: termFadeIn 0.3s ease-out forwards; 
+    }
+    @keyframes termFadeIn { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: translateX(0); } }
+
+    .terminal-timestamp { color: var(--text-disabled); font-size: 10.5px; white-space: nowrap; opacity: 0.6; }
+    .terminal-prompt { color: var(--accent-primary); opacity: 0.6; font-weight: 900; }
+    
+    .term-success { color: var(--status-safe); }
+    .term-error { color: var(--status-critical); background: rgba(255, 77, 77, 0.1); padding: 0 6px; border-radius: 3px; }
+    .term-warn { color: var(--status-warning); }
+    .term-info { color: var(--status-info); }
+
+    @media (max-width: 1200px) {
+      .report-split-container { grid-template-columns: 1fr; }
+      .report-sidebar { position: static; }
+    }
+  </style>
+
+  <script>
+    window.reportState = { isBusy: false, lastHash: "" };
+
+    window.renderReportPreview = function() {
+       const statusDiv = document.getElementById('report-status');
+       const btn = document.getElementById('btn-exec-cbr');
+       const selectedFlights = window.getSelectedFlightObjects ? window.getSelectedFlightObjects() : [];
+       
+        // Get NOTAM analysis count
+        let notamCount = 0;
+        try {
+          const stored = localStorage.getItem('occ_notam_analysis');
+          if (stored && stored !== 'undefined') {
+            const analysis = JSON.parse(stored);
+            if (analysis && typeof analysis === 'object') {
+              Object.values(analysis).forEach(arr => { if(Array.isArray(arr)) notamCount += arr.length; });
+            }
+          }
+        } catch(e) {
+          console.warn('[REPORT] Failed to parse NOTAM analysis from storage:', e);
+        }
+
+        // Update Summary Sidebar
+        if (document.getElementById('report-sum-count')) document.getElementById('report-sum-count').innerText = selectedFlights.length;
+        if (document.getElementById('report-sum-notams')) document.getElementById('report-sum-notams').innerText = notamCount;
+        if (document.getElementById('report-sum-flights')) {
+          document.getElementById('report-sum-flights').innerHTML = selectedFlights.length > 0 
+            ? selectedFlights.map(f => `• ${f.FLIGHT}`).join('<br>') 
+            : 'NONE SELECTED';
+        }
+        
+        const sumStatus = document.getElementById('report-sum-status');
+        if (sumStatus) {
+          if (selectedFlights.length === 0) {
+             sumStatus.innerText = 'AWAITING CONTEXT';
+             sumStatus.style.color = 'var(--status-warning)';
+          } else {
+             sumStatus.innerText = 'READY TO GENERATE';
+             sumStatus.style.color = 'var(--status-safe)';
+          }
+        }
+
+        // Create a persistent hash based on unique flight row IDs and NOTAM count
+        const currentHash = selectedFlights.map(f => f.rowIdx).sort().join(',') + `|notams:${notamCount}`;
+        
+        // IF busy or already showing results for the SAME selection, do NOT reset
+        if (window.reportState.isBusy || (statusDiv.innerHTML.length > 50 && window.reportState.lastHash === currentHash)) {
+            console.log('[REPORT] State persistent: Selection/NOTAMs unchanged or process active.');
+            return;
+        }
+
+       window.reportState.lastHash = currentHash;
+       statusDiv.style.display = 'block';
+       statusDiv.innerHTML = '<div class="terminal-header">AWQ :: BRIEFING ENGINE :: CORE_STABLE_v2.4</div>';
+       
+       if (selectedFlights.length === 0) {
+           btn.disabled = true;
+           btn.innerHTML = `WAITING FOR CONTEXT`;
+           printTerminalLine("CRITICAL: NO FLIGHT DATA DETECTED IN ACTIVE CACHE.", "error");
+           printTerminalLine("INSTRUCTION: SELECT AT LEAST ONE FLIGHT FROM MONITORING BOARD.", "warn");
+       } else {
+           btn.disabled = false;
+           btn.innerHTML = `INITIATE GENERATION`;
+           printTerminalLine(`SYSTEM READY: ${selectedFlights.length} FLIGHTS DETECTED.`, "success");
+           
+           if (notamCount > 0) {
+             printTerminalLine(`NOTAM SYNC: ${notamCount} ANALYSIS SELECTIONS IMPORTED.`, "success");
+           } else {
+             printTerminalLine("NOTAM SYNC: NO MANUAL SELECTIONS FOUND IN ANALYSIS DESK.", "warn");
+           }
+           
+           printTerminalLine("AWAITING OPERATOR CONFIRMATION TO PROCEED...", "info");
+       }
+    };
+
+    window.resetReportEngine = function() {
+      if (window.reportState.isBusy) return;
+      window.reportState.lastHash = "";
+      const statusDiv = document.getElementById('report-status');
+      statusDiv.innerHTML = '<div class="terminal-header">AWQ :: BRIEFING ENGINE :: CORE_STABLE_v2.4</div>';
+      printTerminalLine("MANUAL RESET TRIGGERED. RE-SYNCING WITH MISSION_DB AND NOTAM_ANALYSIS...", "info");
+      setTimeout(() => window.renderReportPreview(), 300);
+    };
+
+    const printTerminalLine = (text, type='info') => {
+       const statusDiv = document.getElementById('report-status');
+       const d = new Date();
+       const timeStr = `${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}:${String(d.getUTCSeconds()).padStart(2,'0')}Z`;
+       
+       const typeMap = { 'success': 'term-success', 'error': 'term-error', 'warn': 'term-warn', 'info': 'term-info' };
+       const colorClass = typeMap[type] || 'term-info';
+
+       statusDiv.insertAdjacentHTML('beforeend', `
+         <div class="terminal-line">
+            <span class="terminal-timestamp">[${timeStr}]</span>
+            <span class="terminal-prompt">></span>
+            <span class="${colorClass}">${text}</span>
+         </div>
+       `);
+       statusDiv.scrollTop = statusDiv.scrollHeight;
+    };
+
+    window.compileFinalCbr = function() {
+       const selectedFlights = window.getSelectedFlightObjects ? window.getSelectedFlightObjects() : [];
+       if (selectedFlights.length === 0) return;
+       
+        const btn = document.getElementById('btn-exec-cbr');
+        const statusDiv = document.getElementById('report-status');
+        
+        window.reportState.isBusy = true;
+        btn.disabled = true;
+        btn.innerHTML = `GENERATING...`;
+       
+       statusDiv.innerHTML = '<div class="terminal-header">AWQ :: BRIEFING ENGINE :: CORE_STABLE_v2.4</div>';
+       printTerminalLine("PROCESS START: INITIALIZING DYNAMIC COMPILATION...", "info");
+       
+       const uxSteps = [
+         "ESTABLISHING SECURE HANDSHAKE WITH MISSION_DB...",
+         "VALIDATING ROUTE PROFILES AND EQUIPMENT REGISTRY...",
+         "PREPPING DYNAMIC BRIEFING TEMPLATES...",
+         "FETCHING LIVE WEATHER DATA FROM GLOBAL ENDPOINTS...",
+         "CORRELATING NOTAM ANALYTICS WITH FLIGHT WINDOWS...",
+         "INJECTING STRUCTURED DATA INTO BRIEFING CONTEXT..."
+       ];
+       
+       let stepIndex = 0;
+       const statusCycle = setInterval(() => {
+           if (stepIndex < uxSteps.length) {
+               printTerminalLine(uxSteps[stepIndex++], "info");
+           } else {
+               clearInterval(statusCycle);
+               printTerminalLine("WAIT: FINALIZING PACKAGE AND GENERATING ACCESS URL...", "warn");
+           }
+       }, 1200);
+
+        let savedNotamAnalysis = {};
+        try {
+          const stored = localStorage.getItem('occ_notam_analysis');
+          if (stored) savedNotamAnalysis = JSON.parse(stored);
+        } catch (e) {
+          console.warn("Report Engine: Failed to parse NOTAM analysis:", e);
+        }
+       
+
+       google.script.run
+         .withSuccessHandler(res => {
+             clearInterval(statusCycle);
+              if (res.status === "SUCCESS") {
+                  printTerminalLine(`SUCCESS: ${res.message}`, "success");
+                  printTerminalLine(`<a href="${res.url}" target="_blank" style="color:inherit; text-decoration:underline;">[ CLICK HERE TO OPEN GENERATED BRIEFING PACKAGE ]</a>`, "success");
+                  btn.innerHTML = `GENERATE COMPLETE`;
+              } else {
+                  printTerminalLine(`EXCEPTION: ${res.message}`, "error");
+                  btn.disabled = false;
+                  btn.innerHTML = `RETRY GENERATION`;
+              }
+              window.reportState.isBusy = false;
+          })
+          .withFailureHandler(err => { 
+              clearInterval(statusCycle);
+              printTerminalLine(`FATAL ERROR: ${err.message}`, "error");
+              btn.disabled = false;
+              btn.innerHTML = `RETRY GENERATION`;
+              window.reportState.isBusy = false;
+          })
+          .generateBriefingPackage(selectedFlights, savedNotamAnalysis);
+    };
+  </script>
+</div>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base target="_top">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* =========================================================
+       AWQ GLOBAL DESIGN SYSTEM (OCC GRADE)
+       ========================================================= */
+    :root {
+      /* --- Surfaces & Backgrounds --- */
+      --bg-void:           #06080a;
+      --bg-dark:           #0b0e14;
+      --bg-panel:          #12161f;
+      --bg-panel-raised:   #1a1f2b;
+      --bg-panel-sunken:   #040506;
+      --bg-panel-alt:      #161b26;
+      
+      /* --- Navigation & Chrome --- */
+      --nav-bg:            rgba(6, 8, 10, 0.7);
+      --nav-bg-active:     rgba(0, 163, 255, 0.15);
+      --nav-border:        rgba(255, 255, 255, 0.08);
+      --nav-item-bg:       rgba(255, 255, 255, 0.05);
+      --nav-item-hover:    rgba(255, 255, 255, 0.08);
+      --nav-accent:        #00A3FF;
+      --accent-glow:       0 0 15px rgba(0, 163, 255, 0.4);
+
+      /* --- Border System --- */
+      --border-subtle:     rgba(255, 255, 255, 0.05);
+      --border-light:      rgba(255, 255, 255, 0.1);
+      --border-medium:     rgba(255, 255, 255, 0.2);
+      --border-strong:     rgba(255, 255, 255, 0.3);
+      --border-accent:     #00A3FF;
+
+      /* --- Typography --- */
+      --text-primary:      #ffffff;
+      --text-secondary:    #d1d5db;
+      --text-muted:        #9ca3af;
+      --text-disabled:     #4b5563;
+
+      /* --- Semantic Status Colors --- */
+      --status-critical:   #ff4d4d;
+      --status-critical-bg: rgba(255, 77, 77, 0.15);
+      --status-critical-glow: rgba(255, 77, 77, 0.2);
+
+      --status-warning:    #ffb020;
+      --status-warning-bg: rgba(255, 176, 32, 0.15);
+      --status-warning-glow: rgba(255, 176, 32, 0.15);
+
+      --status-advisory:   #F6E05E;
+      --status-advisory-bg:rgba(246, 224, 94, 0.08);
+
+      --status-safe:       #00e676;
+      --status-safe-bg:    rgba(0, 230, 118, 0.15);
+      --status-safe-glow:  rgba(0, 230, 118, 0.15);
+
+      --status-info:       #00a3ff;
+      --status-info-bg:    rgba(0, 163, 255, 0.15);
+      --status-neutral:    #718096;
+
+      /* --- Accent & Interactive --- */
+      --accent-primary:    #00A3FF;
+      --accent-secondary:  #0077CC;
+      --accent-hover:      #33B5FF;
+
+      /* --- Data Colors --- */
+      --data-dep:          #FFB020;
+      --data-arr:          #00E676;
+      --data-flt:          #00A3FF;
+      --data-reg:          #CBD5E0;
+      --data-time:         #F0F4F8;
+
+      /* --- Terminal --- */
+      --term-bg:           #080A0F;
+      --term-border:       #1A1F2B;
+
+      /* --- Typography System --- */
+      --font-ui:           'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-mono:         'JetBrains Mono', 'Fira Code', 'Roboto Mono', monospace;
+
+      /* --- Spacing --- */
+      --radius-sm:         6px;
+      --radius-md:         10px;
+      --radius-lg:         16px;
+      --radius-pill:       9999px;
+    }
+
+    /* ===== LIGHT MODE OPTIMIZATION ===== */
+    [data-theme="light"] {
+      --bg-void:           #F7FAFC;
+      --bg-dark:           #EDF2F7;
+      --bg-panel:          #FFFFFF;
+      --bg-panel-raised:   #FFFFFF;
+      --bg-panel-sunken:   #E2E8F0;
+      --bg-panel-alt:      #F8FAFC;
+
+      --border-subtle:     #CBD5E0;
+      --border-light:      #A0AEC0;
+      --border-medium:     #718096;
+      --border-strong:     #4A5568;
+      --border-accent:     #3182CE;
+
+      --text-primary:      #1A202C;
+      --text-secondary:    #2D3748;
+      --text-muted:        #4A5568;
+      --text-disabled:     #718096;
+
+      --status-critical:   #C53030;
+      --status-critical-bg:#FFF5F5;
+      --status-warning:    #B7791F;
+      --status-warning-bg: #FFFFF0;
+      --status-safe:       #2F855A;
+      --status-safe-bg:    #F0FFF4;
+      --status-info:       #2B6CB0;
+      --status-info-bg:    #EBF8FF;
+
+      --accent-primary:    #3182CE;
+      --accent-secondary:  #2C5282;
+      --accent-hover:      #4299E1;
+
+      --data-dep:          #B7791F;
+      --data-arr:          #2F855A;
+      --data-flt:          #2B6CB0;
+      --data-reg:          #4A5568;
+      --data-time:         #1A202C;
+
+      --term-bg:           #F7FAFC;
+      --term-border:       #CBD5E0;
+
+      --nav-bg:            rgba(255, 255, 255, 0.85);
+      --nav-bg-active:     rgba(49, 130, 206, 0.1);
+      --nav-border:        rgba(0, 0, 0, 0.08);
+      --nav-item-bg:       rgba(0, 0, 0, 0.04);
+      --nav-item-hover:    rgba(0, 0, 0, 0.08);
+    }
+    
+    body { 
+      background-color: var(--bg-dark); 
+      color: var(--text-primary); 
+      font-family: var(--font-ui); 
+      margin: 0; 
+      transition: background-color 0.2s ease, color 0.2s ease; 
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    
+    /* NAVIGATION BAR */
+    .occ-nav-bar { 
+      background-color: var(--nav-bg); 
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      height: 64px; /* More compact */
+      padding: 0 32px; 
+      display: flex; 
+      align-items: center; 
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      border-bottom: 1px solid var(--nav-border);
+      transition: all 0.3s ease;
+    }
+
+    .occ-nav-bar .brand { 
+      font-weight: 900; 
+      font-size: 18px; 
+      letter-spacing: -0.02em; 
+      margin-right: 48px; 
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    
+    .nav-btn-group { 
+      display: flex; 
+      gap: 6px; 
+      background: var(--nav-item-bg);
+      padding: 4px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--nav-border);
+      overflow-x: auto;
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+      position: relative;
+    }
+    .nav-btn-group::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+    .nav-tab { 
+      background: none; 
+      border: none; 
+      color: var(--text-muted); 
+      font-weight: 700; 
+      cursor: pointer; 
+      padding: 6px 18px; 
+      font-size: 10.5px; 
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+      display: flex;
+      align-items: center;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+    .nav-tab.active { 
+      color: #fff; 
+      background: var(--accent-primary);
+      box-shadow: 0 4px 12px rgba(0, 163, 255, 0.3);
+    }
+    .nav-tab:hover:not(.active) { 
+      color: var(--text-primary);
+      background: var(--nav-item-hover); 
+    }
+    
+    .nav-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-shrink: 0;
+    }
+
+    /* HEARTBEAT UTC CLOCK */
+    .utc-heartbeat {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      font-family: var(--font-mono);
+      min-width: 100px;
+      padding-right: 12px;
+      border-right: 1px solid var(--border-subtle);
+    }
+    .utc-time-main {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1;
+    }
+    .utc-time-sub {
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--accent-primary);
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+    .heartbeat-icon {
+      width: 6px;
+      height: 6px;
+      background: var(--status-safe);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--status-safe);
+      animation: heartPulse 1.5s infinite;
+    }
+    @keyframes heartPulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.4; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Standardized Update Notam Nav */
+    #nav-update-notam {
+      /* Uses standard .nav-tab styles */
+    }
+
+    .theme-toggle-btn { 
+      background: var(--bg-panel-raised);
+      border: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      border-radius: 50%; 
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+    .theme-toggle-btn:hover { border-color: var(--accent-primary); color: var(--text-primary); transform: translateY(-1px); }
+    
+    /* EXTERNAL LINKS DROPDOWN */
+    .dropdown-container { position: relative; }
+    .nav-btn-ext {
+      background: var(--bg-panel-raised);
+      border: 1px solid var(--border-light);
+      color: var(--text-primary);
+      padding: 0 14px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .nav-btn-ext:hover { border-color: var(--accent-primary); background: var(--nav-bg-active); }
+    .nav-btn-ext .chevron { font-size: 7px; opacity: 0.5; transition: 0.3s; }
+    .nav-btn-ext.open .chevron { transform: rotate(180deg); }
+
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+      background: var(--bg-panel-raised);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      width: 220px;
+      display: none;
+      flex-direction: column;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      z-index: 4000;
+      padding: 6px 0;
+      animation: dropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    [data-theme="dark"] .dropdown-menu { background: rgba(22, 27, 38, 0.95); }
+    [data-theme="light"] .dropdown-menu { background: rgba(255, 255, 255, 0.98); }
+
+    @keyframes dropdownFade {
+      from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .dropdown-menu.show { display: flex; }
+    
+    .dropdown-item {
+      padding: 10px 18px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 600;
+      transition: 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 0.02em;
+    }
+    .dropdown-item:hover {
+      background: var(--nav-bg-active);
+      color: var(--accent-primary);
+      padding-left: 22px;
+    }
+    .dropdown-item::after {
+      content: '↗';
+      font-size: 10px;
+      opacity: 0.3;
+    }
+    .dropdown-item:hover::after { opacity: 0.8; }
+    
+    .dropdown-divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 4px 0;
+    }
+
+    /* STATUS STRIP */
+    .occ-status-strip {
+      background-color: var(--bg-panel-sunken);
+      height: 36px;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      gap: 20px;
+      position: sticky;
+      top: 64px;
+      z-index: 2900;
+      border-bottom: 1px solid var(--border-subtle);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .status-item { display: flex; align-items: center; gap: 8px; }
+    .status-item:not(:last-child)::after {
+      content: '';
+      height: 12px;
+      width: 1px;
+      background: var(--border-subtle);
+      margin-left: 20px;
+    }
+    .status-val { color: var(--text-primary); font-weight: 600; }
+    
+    .pulse-dot-live {
+      width: 6px; height: 6px; background-color: var(--status-safe); 
+      border-radius: 50%; position: relative;
+    }
+    .pulse-dot-live::after {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      border-radius: 50%;
+      border: 1px solid var(--status-safe);
+      animation: pulsePing 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes pulsePing { 
+      0% { transform: scale(1); opacity: 0.8; } 
+      100% { transform: scale(3); opacity: 0; } 
+    }
+
+    /* CONTENT AREA */
+    .occ-content-area { 
+      padding: 24px 32px; 
+      max-width: 1800px; /* Slightly wider */
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    
+    .view-section { display: none !important; }
+    .view-section.active { display: block !important; animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes slideUpFade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* UTILITIES */
+    .header-title { 
+      color: var(--text-primary); 
+      font-weight: 900; 
+      margin: 0;
+      font-size: 13px; 
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-title::before {
+      content: '';
+      width: 4px;
+      height: 16px;
+      background: var(--accent-primary);
+      box-shadow: 0 0 12px var(--accent-primary);
+      border-radius: var(--radius-pill);
+    }
+    .header-sub { 
+      font-size: 10px; 
+      color: var(--text-muted); 
+      margin-top: 6px; 
+      font-family: var(--font-mono);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      padding-left: 16px;
+    }
+
+    .badge-critical { background: var(--status-critical); color: #fff; font-weight: 800; }
+    
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-void); }
+    ::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+    /* RESPONSIVE OPTIMIZATIONS */
+    @media (max-width: 1600px) {
+      .occ-nav-bar { padding: 0 24px; }
+      .occ-content-area { padding: 20px 24px; }
+    }
+
+    @media (max-width: 1440px) {
+      .occ-nav-bar .brand { margin-right: 24px; font-size: 16px; }
+      .nav-tab { padding: 6px 14px; font-size: 10px; }
+      .nav-actions { gap: 16px; }
+      .utc-heartbeat { padding-right: 8px; min-width: 90px; }
+      .utc-time-main { font-size: 16px; }
+    }
+
+    @media (max-width: 1280px) {
+      .brand-name span { display: none; } /* Hide "OCC" text suffix */
+      .utc-heartbeat { border: none; }
+      .utc-time-sub { display: none; }
+    }
+
+    @media (max-width: 1024px) {
+      .nav-actions .dropdown-container { display: none; } /* Move links to mobile menu later if needed */
+    }
+
+    @media (max-width: 768px) {
+      .occ-nav-bar { padding: 0 16px; height: auto; min-height: 64px; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-bottom: 12px; }
+      .nav-btn-group { order: 3; width: 100%; padding: 2px; }
+      .nav-tab { flex: 1; justify-content: center; padding: 10px 4px; }
+      .brand { margin-right: 0; }
+      .nav-actions { margin-left: 0; gap: 12px; }
+      .occ-status-strip { padding: 0 16px; overflow-x: auto; gap: 12px; }
+      .status-item::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="occ-nav-bar">
+    <div class="brand">
+      <span class="brand-logo" style="color:var(--nav-accent); font-size: 28px;">✈</span>
+      <span class="brand-name" style="color: var(--text-primary); font-weight: 900;">AWQ <span style="font-weight:300; opacity:0.6;">OCC</span></span>
+    </div>
+    <div class="nav-btn-group">
+      <button id="nav-flight" class="nav-tab active" onclick="window.switchTab('flight')">FLIGHT BOARD</button>
+      <button id="nav-notam" class="nav-tab" onclick="window.switchTab('notam')">
+        NOTAM ANALYSIS
+        <span id="nav-notam-badge" class="badge-critical" style="display:none; margin-left:8px; border-radius:10px; padding:1px 6px; font-size:10px;">0</span>
+      </button>
+      <button id="nav-report" class="nav-tab" onclick="window.switchTab('report')">RELEASE COMPILER</button>
+      <button id="nav-route" class="nav-tab" onclick="window.switchTab('route')">ROUTE MANAGER</button>
+      <button id="nav-taf" class="nav-tab" onclick="window.switchTab('taf')">TAF MANAGER</button>
+      <button id="nav-update-notam" class="nav-tab" onclick="window.switchTab('update-notam')">UPDATE NOTAM</button>
+      <button id="nav-weather" class="nav-tab" onclick="window.switchTab('weather')" style="color: var(--status-warning);">⚠️ WEATHER WARNING</button>
+    </div>
+    <div class="nav-actions">
+      <div class="utc-heartbeat">
+        <div class="utc-time-main">
+          <span id="sys-utc-nav">0000Z</span>
+          <span class="heartbeat-icon"></span>
+        </div>
+        <div id="sys-utc-sub" class="utc-time-sub">UTC ZULU TIME</div>
+      </div>
+      <div class="dropdown-container">
+        <button id="ext-links-btn" class="nav-btn-ext" onclick="window.toggleExternalLinks()">
+          LINKS <span class="chevron">▼</span>
+        </button>
+        <div id="ext-links-menu" class="dropdown-menu">
+          <a class="dropdown-item" href="https://docs.google.com/spreadsheets/d/1PAV7ajnwv6CpYoGzsMKzAjlmdhLsrOd1Tsz0UDOfdj8/edit?gid=1555717677#gid=1555717677" target="_blank">A/C STATUS</a>
+          <a class="dropdown-item" href="https://docs.google.com/spreadsheets/d/1jHGaWQB5PtzkmVKwb7k_a1nPTZoUhcJjn7NnKWaw-Qg/edit?gid=0#gid=0" target="_blank">CGO PLAN</a>
+          <a class="dropdown-item" href="https://drive.google.com/drive/folders/1_TqB_9wV9Bqz6bEh-Ip0s_adFqf3bZcJ" target="_blank">DISPATCH BULETIN</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="https://aviationweather.gov/data/taf/" target="_blank">ADDS (TAF)</a>
+          <a class="dropdown-item" href="https://web-aviation.bmkg.go.id/web/taf.php" target="_blank">BMKG TAF</a>
+          <a class="dropdown-item" href="https://redwatch.airasia.com/eops" target="_blank">REDWATCH</a>
+          <a class="dropdown-item" href="https://www.flightradar24.com/" target="_blank">FR24</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="https://www.bom.gov.au/aviation/volcanic-ash/darwin-va-advisory.shtml" target="_blank">VAAC DARWIN</a>
+          <a class="dropdown-item" href="https://www.metoc.navy.mil/jtwc/jtwc.html?tropical" target="_blank">JTWC</a>
+          <a class="dropdown-item" href="https://notams.aim.faa.gov/notamSearch/nsapp.html#/" target="_blank">DINS NOTAM</a>
+        </div>
+      </div>
+      <button id="theme-toggle" class="theme-toggle-btn" onclick="window.toggleTheme()" title="Toggle Theme">🌓</button>
+    </div>
+  </div>
+
+  <div class="occ-status-strip">
+    <div class="status-item"><span class="pulse-dot-live"></span> <span class="status-val">SYSTEM LIVE</span></div>
+    <div class="status-item">DATABASE: <span id="sys-db-status" style="color: var(--status-safe);">CONNECTED</span></div>
+    <div class="status-item">UTC: <span id="sys-utc" class="status-val">--:--Z</span></div>
+    <div class="status-item">BOARD: <span id="sys-board-count" class="status-val">0</span> ACTIVE</div>
+    <div class="status-item" style="margin-left:auto;">
+      ALERTS: <span id="sys-alert-count" style="color: var(--status-critical); font-weight: bold;">0</span>
+    </div>
+  </div>
+
+  <div class="occ-content-area">
+    <?!= include('Flight_Ui'); ?>
+    <?!= include('Notam_Ui'); ?>
+    <?!= include('Report_Ui'); ?>
+    <?!= include('Update_Notam_Ui'); ?>
+    <?!= include('Route_Ui'); ?>
+    <?!= include('Taf_Ui'); ?>
+    <?!= include('Weather_Warning_Ui'); ?>
+  </div>
+ 
+  <script>
+    // Initialize Theme
+    (function() {
+      try {
+        const savedTheme = localStorage.getItem('occ_theme_pref') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      } catch (e) {
+        console.warn('Theme init blocked:', e);
+      }
+    })();
+
+    window.toggleTheme = function() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      try {
+        localStorage.setItem('occ_theme_pref', newTheme);
+      } catch (e) {
+        console.warn('LocalStorage blocked:', e);
+      }
+    };
+
+    // Protect global state
+    window.globalSelectedFlights = window.globalSelectedFlights || [];
+
+    window.switchTab = function(tabName) {
+      console.log('[SYSTEM] Attempting switch to:', tabName);
+      
+      const targetView = document.getElementById('view-' + tabName);
+      const targetNav = document.getElementById('nav-' + tabName);
+      
+      if (!targetView) {
+        console.error('[ERROR] Target view not found: view-' + tabName);
+        return;
+      }
+      
+      const viewSections = document.querySelectorAll('.view-section');
+      const navTabs = document.querySelectorAll('.nav-tab');
+      
+      viewSections.forEach(el => el.classList.remove('active'));
+      navTabs.forEach(el => el.classList.remove('active'));
+      
+      targetView.classList.add('active');
+      if (targetNav) targetNav.classList.add('active');
+
+      try {
+        if (tabName === 'notam' && typeof window.loadNotamsForSelected === 'function') {
+          window.loadNotamsForSelected();
+        } else if (tabName === 'report' && typeof window.renderReportPreview === 'function') {
+          window.renderReportPreview();
+        } else if (tabName === 'route' && typeof window.initRouteManager === 'function') {
+          window.initRouteManager();
+        } else if (tabName === 'taf' && typeof window.initTafManager === 'function') {
+          window.initTafManager();
+        } else if (tabName === 'weather' && typeof window.initWeatherDashboard === 'function') {
+          window.initWeatherDashboard();
+        }
+      } catch (err) {
+        console.error('[ERROR] Initialization failed for ' + tabName + ':', err);
+      }
+      
+      // Auto-scroll to top on tab change
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Diagnostic on load
+    window.addEventListener('load', () => {
+      const sections = ['flight', 'notam', 'report', 'route', 'update-notam', 'taf'];
+      const missing = [];
+      sections.forEach(s => {
+        const el = document.getElementById('view-' + s);
+        if (!el) missing.push('view-' + s);
+        const nav = document.getElementById('nav-' + s);
+        if (!nav) console.warn(`[DIAGNOSTIC] Missing nav button: nav-${s}`);
+      });
+      
+      if (missing.length > 0) {
+        console.error('[FATAL] Missing UI Modules:', missing.join(', '));
+        // Only show alert if critical modules are missing
+        if (missing.includes('view-notam') || missing.includes('view-report')) {
+           console.warn('UI may be incomplete. Check console for details.');
+        }
+      } else {
+        console.log('[SYSTEM] All UI modules loaded successfully.');
+      }
+    });
+
+    // External Links Dropdown Logic
+    window.toggleExternalLinks = function() {
+      const menu = document.getElementById('ext-links-menu');
+      const btn = document.getElementById('ext-links-btn');
+      const isOpen = menu.classList.contains('show');
+      
+      // Close other dropdowns if any exist in future
+      menu.classList.toggle('show');
+      btn.classList.toggle('open');
+    };
+
+    // Close dropdown on click outside
+    document.addEventListener('click', function(event) {
+      const menu = document.getElementById('ext-links-menu');
+      const btn = document.getElementById('ext-links-btn');
+      if (!btn.contains(event.target) && !menu.contains(event.target)) {
+        menu.classList.remove('show');
+        btn.classList.remove('open');
+      }
+    });
+
+    // UTC Clock Logic
+    const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+    
+    setInterval(() => {
+      const d = new Date();
+      
+      // Main Display: SAT, 04 JUL 2026
+      const dayName = days[d.getUTCDay()];
+      const dayNum = String(d.getUTCDate()).padStart(2, '0');
+      const monthName = months[d.getUTCMonth()];
+      const year = d.getUTCFullYear();
+      const dateStr = `${dayName}, ${dayNum} ${monthName} ${year}`;
+      
+      // Sub Display: HH:MM:SS Z
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const mins = String(d.getUTCMinutes()).padStart(2, '0');
+      const secs = String(d.getUTCSeconds()).padStart(2, '0');
+      const timeStr = `${hours}:${mins}:${secs} Z`;
+
+      if (document.getElementById('sys-utc-nav')) document.getElementById('sys-utc-nav').innerText = dateStr;
+      if (document.getElementById('sys-utc-sub')) document.getElementById('sys-utc-sub').innerText = timeStr;
+      
+      // Legacy support for status strip (keeps HHMMZ format)
+      if (document.getElementById('sys-utc')) {
+        document.getElementById('sys-utc').innerText = `${hours}${mins}Z`;
+      }
+    }, 1000);
+
+    // Weather Warning Handler
+    window.openWeatherWarning = function() {
+      console.log('[SYSTEM] Launching Weather Warning Modal...');
+      google.script.run.openWeatherWarning();
+    };
+  </script>
+</body>
+</html>

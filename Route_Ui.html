@@ -1,0 +1,219 @@
+<div id="view-route" class="view-section">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+      <h2 class="header-title">ROUTE REGISTRY MANAGER</h2>
+      <div class="header-sub">Central database for all approved flight routing profiles</div>
+    </div>
+    <button class="control-btn btn-solid-primary" onclick="window.openRouteManagerModal()">+ NEW ROUTE PROFILE</button>
+  </div>
+
+  <div class="route-manager-container">
+    <div class="search-bar" style="padding: 24px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel-alt); display: flex; gap: 20px; align-items: flex-start;">
+      <div style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
+        <input type="text" id="route-search-input" class="search-input" placeholder="Search by Route ID, DEP, or ARR..." onkeyup="window.filterRouteTable()" style="background: var(--bg-void); border: 1px solid var(--border-light); color: var(--text-primary); padding: 10px 16px; border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: 14px; width: 100%; box-sizing: border-box;">
+        <div class="quick-filter-bar" id="route-filter-chips">
+          <span class="filter-chip active" onclick="window.setRouteFilter(this, '')">ALL</span>
+          <span class="filter-chip" onclick="window.setRouteFilter(this, 'WIII')">WIII (CGK)</span>
+          <span class="filter-chip" onclick="window.setRouteFilter(this, 'WADD')">WADD (DPS)</span>
+          <span class="filter-chip" onclick="window.setRouteFilter(this, 'WMKK')">WMKK (KUL)</span>
+          <span class="filter-chip" onclick="window.setRouteFilter(this, 'WSSS')">WSSS (SIN)</span>
+          <span class="filter-chip" onclick="window.setRouteFilter(this, 'YPPH')">YPPH (PER)</span>
+        </div>
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); text-align: right; padding-top: 12px; flex-shrink: 0;">
+        <span id="route-total-count" style="font-weight: 700; color: var(--accent-primary); font-size: 16px;">0</span><br>PROFILES
+      </div>
+    </div>
+
+    <div style="overflow-x: auto; max-height: 700px;">
+      <table class="route-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+        <thead style="position: sticky; top: 0; z-index: 20;">
+          <tr style="background: var(--bg-panel-raised); color: var(--text-muted); font-family: var(--font-ui); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.18em; border-bottom: 1px solid var(--border-light);">
+            <th style="padding: 16px 20px; text-align: left; font-weight: 900; border-bottom: 1px solid var(--border-medium);">ROUTE ID</th>
+            <th style="padding: 16px 20px; text-align: left; font-weight: 900; border-bottom: 1px solid var(--border-medium);">PAIR</th>
+            <th style="padding: 16px 20px; text-align: left; font-weight: 900; border-bottom: 1px solid var(--border-medium);">RWY (D/A)</th>
+            <th style="padding: 16px 20px; text-align: left; font-weight: 900; border-bottom: 1px solid var(--border-medium);">SID/STAR</th>
+            <th style="padding: 16px 20px; text-align: left; font-weight: 900; border-bottom: 1px solid var(--border-medium);">ROUTING SEQUENCE</th>
+            <th style="padding: 16px 20px; text-align: center; font-weight: 900; border-bottom: 1px solid var(--border-medium);">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody id="route-manager-tbody">
+           <!-- Data injected here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <style>
+    .route-manager-container { 
+      background: var(--bg-panel); 
+      border: 1px solid var(--border-light); 
+      border-radius: var(--radius-md); 
+      overflow: hidden; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    }
+    .route-table tr {
+      transition: all 0.2s ease;
+    }
+    .route-table tr:hover { 
+      background: rgba(0, 163, 255, 0.05);
+      box-shadow: inset 0 0 20px rgba(0, 163, 255, 0.05);
+    }
+    .route-table td { padding: 12px 20px; border-bottom: 1px solid var(--border-subtle); font-size: 12px; }
+    .route-id-cell { font-family: var(--font-mono); font-weight: 800; color: var(--accent-primary); letter-spacing: 0.02em; }
+    .route-pair-cell { font-weight: 700; letter-spacing: 0.04em; }
+    .route-string-preview { 
+      font-family: var(--font-mono); font-size: 10.5px; color: var(--text-secondary); 
+      opacity: 0.7; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+    }
+    .action-btn { 
+      background: none; border: 1px solid var(--border-light); color: var(--text-muted); 
+      width: 28px; height: 28px; border-radius: var(--radius-sm); 
+      cursor: pointer; transition: 0.2s; font-size: 12px;
+    }
+    .action-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(0, 163, 255, 0.1); }
+    .btn-delete:hover { border-color: var(--status-critical); color: var(--status-critical); background: var(--status-critical-bg); }
+
+    .quick-filter-bar { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-chip {
+      font-size: 9px; font-weight: 800; color: var(--text-muted); 
+      background: var(--nav-item-bg); border: 1px solid var(--border-light);
+      padding: 4px 10px; border-radius: var(--radius-pill); cursor: pointer;
+      transition: all 0.2s; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .filter-chip:hover { border-color: var(--accent-primary); color: var(--text-primary); }
+    .filter-chip.active { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); box-shadow: 0 2px 8px rgba(0,163,255,0.3); }
+  </style>
+
+  <script>
+    window.allRoutesCache = [];
+
+    window.initRouteManager = function() {
+      google.script.run
+        .withSuccessHandler(routes => {
+          window.allRoutesCache = routes;
+          window.renderRouteManagerTable(routes);
+        })
+        .withFailureHandler(err => {
+          console.error('Route Manager load failed:', err);
+          const tbody = document.getElementById('route-manager-tbody');
+          if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding: 40px; text-align: center; color: var(--status-critical); font-family: var(--font-mono);">FAILED TO LOAD ROUTES. REFRESH THE PAGE OR CONTACT ADMIN.</td></tr>';
+          }
+        })
+        .getAllRoutes();
+    }
+
+    window.renderRouteManagerTable = function(routes) {
+      const tbody = document.getElementById('route-manager-tbody');
+      document.getElementById('route-total-count').innerText = routes.length;
+      
+      if (routes.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted); font-family: var(--font-mono);">NO ROUTES FOUND IN REGISTRY</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = routes.map(r => `
+        <tr>
+          <td><span class="route-id-cell">${r.ID}</span></td>
+          <td><span class="route-pair-cell">${r.DEP_AIRPORT} ➔ ${r.ARR_AIRPORT}</span></td>
+          <td>${r.DEP_RWY || '-'} / ${r.ARR_RWY || '-'}</td>
+          <td style="font-size: 11px; font-family: var(--font-mono);">${r.SID || '-'} / ${r.STAR || '-'}</td>
+          <td><div class="route-string-preview" title="${r.ROUTE_STRING}">${r.WAYPOINT_SEQ || '-'}</div></td>
+          <td>
+            <div style="display: flex; gap: 8px; justify-content: center;">
+              <button class="action-btn" onclick="window.editRouteFromManager('${r.ID}')" title="Edit Profile">✎</button>
+              <button class="action-btn btn-delete" onclick="window.confirmDeleteRoute('${r.ID}')" title="Delete Profile">🗑</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    window.setRouteFilter = function(chipEl, val) {
+      const input = document.getElementById('route-search-input');
+      if (input) {
+        input.value = val;
+        window.filterRouteTable();
+      }
+      
+      // Update UI active state
+      const chips = document.querySelectorAll('.filter-chip');
+      chips.forEach(c => c.classList.remove('active'));
+      if (chipEl) chipEl.classList.add('active');
+    }
+
+    window.filterRouteTable = function() {
+      const query = document.getElementById('route-search-input').value.toUpperCase();
+      const filtered = window.allRoutesCache.filter(r => 
+        r.ID.toUpperCase().includes(query) || 
+        r.DEP_AIRPORT.toUpperCase().includes(query) || 
+        r.ARR_AIRPORT.toUpperCase().includes(query)
+      );
+      window.renderRouteManagerTable(filtered);
+    }
+
+    window.openRouteManagerModal = function() {
+      // Reuse the existing modal-route from Flight_Ui
+      if (typeof openRouteModal === 'function') {
+        // Reset modal fields for new route
+        document.getElementById('route-flt-title').innerText = "NEW PROFILE";
+        document.getElementById('route-id-input').value = "";
+        document.getElementById('route-dep').value = "";
+        document.getElementById('route-arr').value = "";
+        document.getElementById('route-dep-rwy').value = "";
+        document.getElementById('route-sid').value = "";
+        document.getElementById('route-waypoint').value = "";
+        document.getElementById('route-star').value = "";
+        document.getElementById('route-arr-rwy').value = "";
+        
+        // Show the modal
+        document.getElementById('modal-route').style.display = 'flex';
+        // Note: We might need to handle the dropdown differently for the manager
+        const selector = document.getElementById('route-selector');
+        selector.innerHTML = '<option value="__NEW">+ CREATE NEW PROFILE</option>';
+        selector.value = '__NEW';
+      }
+    }
+
+    window.editRouteFromManager = function(routeId) {
+      const route = window.allRoutesCache.find(r => r.ID === routeId);
+      if (!route) return;
+
+      if (typeof openRouteModal === 'function') {
+        document.getElementById('route-flt-title').innerText = route.ID;
+        document.getElementById('route-id-input').value = route.ID;
+        document.getElementById('route-dep').value = route.DEP_AIRPORT;
+        document.getElementById('route-arr').value = route.ARR_AIRPORT;
+        document.getElementById('route-dep-rwy').value = route.DEP_RWY;
+        document.getElementById('route-sid').value = route.SID;
+        document.getElementById('route-waypoint').value = route.WAYPOINT_SEQ;
+        document.getElementById('route-star').value = route.STAR;
+        document.getElementById('route-arr-rwy').value = route.ARR_RWY;
+
+        document.getElementById('modal-route').style.display = 'flex';
+        const selector = document.getElementById('route-selector');
+        selector.innerHTML = `<option value="${route.ID}">${route.ID}</option>`;
+        selector.value = route.ID;
+      }
+    }
+
+    window.confirmDeleteRoute = function(routeId) {
+      if (!confirm(`Are you sure you want to PERMANENTLY delete route profile ${routeId}? This cannot be undone.`)) return;
+      
+      google.script.run
+        .withSuccessHandler(routes => {
+          window.allRoutesCache = routes;
+          window.renderRouteManagerTable(routes);
+        })
+        .withFailureHandler(err => {
+          console.error('Route delete failed:', err);
+          alert('Unable to delete route profile. Please try again.');
+        })
+        .deleteRoute(routeId);
+    }
+
+    // Intercept saveFlightRoute success to update manager table too
+    // We need to modify Flight_Ui's submitRoute to use the updated response
+  </script>
+</div>

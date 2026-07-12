@@ -1,0 +1,353 @@
+<div id="view-taf" class="view-section">
+  <div class="header-container" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; flex-wrap: wrap; gap: 20px;">
+    <div>
+      <h2 class="header-title">TAF MANAGER</h2>
+      <p class="header-sub">Manage Terminal Aerodrome Forecasts for Station Registry</p>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button onclick="window.syncWithBoard()" class="control-btn" style="background: var(--bg-void); color: var(--status-warning); border-color: var(--status-warning);">🔄 SYNC WITH BOARD</button>
+      <button onclick="window.addNewTafRow()" class="control-btn" style="border-style: dashed;">+ ADD STATION</button>
+      <button onclick="window.fetchLatestTafs(event)" class="control-btn btn-solid-primary">⚡ FETCH LATEST</button>
+      <button onclick="window.saveTafToSpreadsheet(event)" class="control-btn btn-solid-primary">💾 SAVE ALL</button>
+    </div>
+  </div>
+
+  <div id="taf-grid" class="taf-grid">
+     <!-- Cards will be injected here -->
+  </div>
+</div>
+
+<style>
+  .taf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+    align-items: stretch;
+  }
+
+  .taf-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .taf-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    border-color: var(--accent-primary);
+  }
+
+  .taf-card-header {
+    padding: 16px 20px;
+    background: var(--bg-panel-alt);
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .taf-card-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .taf-card-footer {
+    padding: 12px 20px;
+    background: var(--bg-panel-sunken);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .taf-input {
+    background: var(--bg-void);
+    border: 1px solid var(--border-light);
+    color: var(--accent-primary);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    width: 100px;
+    font-family: var(--font-mono);
+    font-weight: 900;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+
+  .taf-textarea {
+    background: var(--bg-panel-sunken);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.6;
+    min-height: 120px;
+    resize: vertical;
+    flex: 1;
+    margin-top: 8px;
+  }
+
+  .freshness-badge {
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+  }
+
+  .fresh-safe { background: rgba(0, 255, 128, 0.1); color: var(--status-safe); border-color: rgba(0, 255, 128, 0.2); }
+  .fresh-warn { background: rgba(255, 163, 0, 0.1); color: var(--status-warning); border-color: rgba(255, 163, 0, 0.2); }
+  .fresh-old { background: rgba(255, 77, 77, 0.1); color: var(--status-critical); border-color: rgba(255, 77, 77, 0.2); }
+  .fresh-new { background: var(--bg-void); color: var(--text-muted); border-color: var(--border-light); }
+
+  .taf-btn-delete {
+    background: none;
+    border: none;
+    color: var(--text-disabled);
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.2s;
+    opacity: 0.5;
+  }
+  .taf-btn-delete:hover { 
+    color: var(--status-critical);
+    opacity: 1;
+  }
+</style>
+
+  <script>
+    let localTafData = [];
+
+    window.initTafManager = function() {
+      console.log('[TAF] Initializing Manager...');
+      google.script.run
+        .withSuccessHandler(data => {
+          localTafData = data;
+          // Auto-sync missing airports from board on load
+          window.syncWithBoard(true); 
+          window.renderTafTable();
+        })
+        .withFailureHandler(err => {
+          console.error('[TAF] Failed to load TAF data:', err);
+          localTafData = [];
+          window.renderTafTable();
+        })
+        .getTafData();
+    }
+
+    /**
+     * Gathers all unique ICAOs from the active board (DEP, ARR, ALT)
+     * and ensures they exist in the localTafData list.
+     */
+    window.syncWithBoard = function(silent = false) {
+      const activeIds = window.activeBoardRowIds || [];
+      const dbFlights = window.allDbFlights || [];
+      const activeFlights = dbFlights.filter(f => activeIds.includes(f.rowIdx));
+      
+      const activeIcaos = new Set();
+      activeFlights.forEach(f => {
+        if (f.DEP) activeIcaos.add(f.DEP.trim().toUpperCase());
+        if (f.ARR) activeIcaos.add(f.ARR.trim().toUpperCase());
+        if (f.ALT) activeIcaos.add(f.ALT.trim().toUpperCase());
+      });
+
+      let addedCount = 0;
+      activeIcaos.forEach(icao => {
+        const exists = localTafData.some(d => d.STATION.toUpperCase() === icao);
+        if (!exists) {
+          localTafData.unshift({ STATION: icao, RAW_TAF: '', TIMESTAMP: '' });
+          addedCount++;
+        }
+      });
+
+      if (!silent) {
+        if (addedCount > 0) alert(`Synced! Added ${addedCount} missing station(s) from the Active Board.`);
+        else alert('Registry is already in sync with the Flight Board.');
+        window.renderTafTable();
+      }
+    };
+
+    window.renderTafTable = function() {
+      const grid = document.getElementById('taf-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      // Get current active ICAOs for highlighting
+      const activeIds = window.activeBoardRowIds || [];
+      const dbFlights = window.allDbFlights || [];
+      const activeIcaos = new Set();
+      dbFlights.filter(f => activeIds.includes(f.rowIdx)).forEach(f => {
+        if (f.DEP) activeIcaos.add(f.DEP.trim().toUpperCase());
+        if (f.ARR) activeIcaos.add(f.ARR.trim().toUpperCase());
+        if (f.ALT) activeIcaos.add(f.ALT.trim().toUpperCase());
+      });
+
+      if (localTafData.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; padding: 60px; text-align: center; color: var(--text-muted); font-family: var(--font-mono); border: 2px dashed var(--border-light); border-radius: var(--radius-lg);">[ NO AERODROME REGISTRY FOUND ]</div>`;
+        return;
+      }
+
+      localTafData.forEach((item, index) => {
+        const isActive = activeIcaos.has(item.STATION.toUpperCase());
+        const card = document.createElement('div');
+        card.className = 'taf-card';
+        if (isActive) card.style.borderColor = 'var(--status-warning)';
+        
+        // Calculate Freshness
+        let freshnessClass = 'fresh-new';
+        let freshnessText = 'NEW ENTRY';
+        
+        if (item.TIMESTAMP) {
+          try {
+            const updateTime = new Date(item.TIMESTAMP.replace(/-/g, '/')); 
+            const now = new Date();
+            const diffHours = (now - updateTime) / (1000 * 60 * 60);
+            
+            if (diffHours < 6) {
+              freshnessClass = 'fresh-safe';
+              freshnessText = 'FRESH';
+            } else if (diffHours < 24) {
+              freshnessClass = 'fresh-warn';
+              freshnessText = 'STALE';
+            } else {
+              freshnessClass = 'fresh-old';
+              freshnessText = 'EXPIRED';
+            }
+          } catch(e) { console.warn("Date parse error:", e); }
+        }
+
+        card.innerHTML = `
+          <div class="taf-card-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="text" class="taf-input" value="${item.STATION}" 
+                onchange="window.updateLocalTaf(${index}, 'STATION', this.value)" 
+                placeholder="ICAO" title="Station ICAO">
+              ${isActive ? '<span style="color:var(--status-warning); font-size:10px; font-weight:900;">[ACTIVE]</span>' : ''}
+            </div>
+            <button onclick="window.removeTafRow(${index})" class="taf-btn-delete" title="Remove Station">✕</button>
+          </div>
+          <div class="taf-card-body">
+            <span style="font-size: 9px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase;">Raw Forecast</span>
+            <textarea class="taf-textarea" spellcheck="false" 
+              onchange="window.updateLocalTaf(${index}, 'RAW_TAF', this.value)">${item.RAW_TAF || ''}</textarea>
+          </div>
+          <div class="taf-card-footer">
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+              <span>LATEST SYNC (Z)</span>
+              <span style="color: var(--text-primary);">${item.TIMESTAMP ? item.TIMESTAMP.split(' ')[1] || item.TIMESTAMP : '---'}</span>
+            </div>
+            <div class="freshness-badge ${freshnessClass}">${freshnessText}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+  window.updateLocalTaf = function(index, field, value) {
+    if (localTafData[index]) {
+      localTafData[index][field] = (field === 'STATION') ? value.toUpperCase() : value;
+    }
+  }
+
+  window.addNewTafRow = function() {
+    localTafData.unshift({
+      STATION: '',
+      RAW_TAF: '',
+      TIMESTAMP: ''
+    });
+    window.renderTafTable();
+  }
+
+  window.removeTafRow = function(index) {
+    if (confirm('Remove this station from TAF registry?')) {
+      localTafData.splice(index, 1);
+      window.renderTafTable();
+    }
+  }
+
+  window.fetchLatestTafs = function(event) {
+    const icaoList = localTafData.map(d => d.STATION).filter(s => s.length >= 3);
+    if (icaoList.length === 0) {
+      alert('Please add station ICAO codes first.');
+      return;
+    }
+
+    const fetchBtn = event?.currentTarget || event?.srcElement || document.activeElement;
+    const originalText = fetchBtn ? fetchBtn.innerText : '⚡ FETCH LATEST';
+    if (fetchBtn) {
+      fetchBtn.innerText = '⌛ SYNCING...';
+      fetchBtn.disabled = true;
+    }
+
+    google.script.run
+      .withSuccessHandler(tafMap => {
+        if (fetchBtn) {
+          fetchBtn.innerText = originalText;
+          fetchBtn.disabled = false;
+        }
+        
+        let updateCount = 0;
+        localTafData.forEach(item => {
+          const key = item.STATION.toUpperCase();
+          if (tafMap[key]) {
+            item.RAW_TAF = tafMap[key];
+            const d = new Date();
+            item.TIMESTAMP = d.toISOString().replace('T', ' ').split('.')[0];
+            updateCount++;
+          }
+        });
+        
+        window.renderTafTable();
+      })
+      .withFailureHandler(err => {
+        if (fetchBtn) {
+          fetchBtn.innerText = originalText;
+          fetchBtn.disabled = false;
+        }
+        alert('TAF fetch failed. API might be unreachable.');
+      })
+      .fetchLatestTafFromApi(icaoList);
+  }
+
+  window.saveTafToSpreadsheet = function(event) {
+    const saveBtn = event?.currentTarget || event?.srcElement || document.activeElement;
+    const originalText = saveBtn ? saveBtn.innerText : '💾 SAVE ALL';
+    if (saveBtn) {
+      saveBtn.innerText = '⌛ SAVING...';
+      saveBtn.disabled = true;
+    }
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (saveBtn) {
+          saveBtn.innerText = originalText;
+          saveBtn.disabled = false;
+        }
+        window.initTafManager();
+      })
+      .withFailureHandler(err => {
+        if (saveBtn) {
+          saveBtn.innerText = originalText;
+          saveBtn.disabled = false;
+        }
+        alert('Failed to save TAF data.');
+      })
+      .saveTafData(localTafData);
+  }
+</script>
+

@@ -1,0 +1,2440 @@
+<style>
+  /* =========================================================
+     AWQ FLIGHT BOARD (OCC GRADE)
+     ========================================================= */
+  .flt-table-container {
+    overflow-x: auto;
+    margin-top: 24px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    background: var(--bg-panel);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+
+  .flt-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .flt-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-panel-alt);
+    color: var(--text-muted);
+    font-size: 10px;
+    text-align: center;
+    white-space: nowrap;
+    padding: 16px 10px;
+    font-family: var(--font-ui);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    border-bottom: 1px solid var(--border-light);
+    font-weight: 900;
+  }
+
+  .flt-table td {
+    padding: 10px 8px;
+    text-align: center;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.15s ease;
+  }
+
+  .flt-table tbody tr {
+    background-color: transparent;
+    transition: all 0.2s ease;
+  }
+
+  .flt-table tbody tr:hover {
+    background-color: rgba(0, 163, 255, 0.05);
+    box-shadow: inset 0 0 20px rgba(0, 163, 255, 0.05);
+  }
+
+  .flt-table tbody tr.selected-row {
+    background-color: var(--status-info-bg) !important;
+    box-shadow: inset 4px 0 0 var(--accent-primary);
+  }
+
+  .flt-table tr.draggable {
+    cursor: grab;
+  }
+
+  .flt-table tr.draggable:active {
+    cursor: grabbing;
+  }
+
+  .flt-table tr.state-drag-target {
+    border-top: 2px solid var(--accent-primary);
+    background: var(--status-info-bg) !important;
+  }
+
+  /* COMPACT MODE */
+  .lido-compact td {
+    padding: 6px 4px !important;
+    font-size: 10.5px !important;
+  }
+
+  .lido-compact th {
+    padding: 6px 4px !important;
+    font-size: 9px !important;
+  }
+
+  .lido-compact .edit-input {
+    height: 22px;
+    font-size: 10.5px;
+  }
+
+  /* QUICK STATS BAR */
+  .flt-quick-stats {
+    background-color: var(--bg-panel-sunken);
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+  .stats-item { display: flex; align-items: center; gap: 6px; }
+  .stats-label { font-weight: 800; letter-spacing: 0.05em; }
+  .stats-val { color: var(--text-primary); font-weight: 700; }
+  .stats-sep { width: 1px; height: 12px; background: var(--border-subtle); margin: 0 4px; }
+
+  /* ATC ACCENT BORDER */
+  .flt-table tbody tr:has(.atc-sent) td:first-child {
+    box-shadow: inset 4px 0 0 var(--status-safe) !important;
+  }
+  .flt-table tbody tr:has(.atc-unsent) td:first-child {
+    box-shadow: inset 4px 0 0 var(--status-critical) !important;
+  }
+
+  /* INPUTS */
+  .edit-input {
+    background: transparent;
+    border: 1px solid transparent;
+    font-family: var(--font-mono);
+    padding: 4px 8px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 12px;
+    caret-color: #00E5FF;
+  }
+
+  .edit-input:focus {
+    outline: none;
+    border-color: var(--border-accent);
+    background: var(--bg-void);
+    box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.3);
+  }
+
+  [data-theme="light"] .edit-input {
+    caret-color: #0056b3 !important;
+  }
+
+  [data-theme="light"] .edit-input:focus {
+    box-shadow: 0 0 0 3px rgba(0, 163, 255, 0.25) !important;
+    border-color: #00A3FF !important;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  [data-theme="light"] .flt-table-container,
+  [data-theme="light"] .flt-table,
+  [data-theme="light"] .edit-input {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M7 2l12 11.2-5.8.8 3.3 7-2.5 1.2-3.3-7-3.7 3.8z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E"), auto !important;
+  }
+
+  .edit-input:hover:not(:focus) {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: var(--border-light);
+  }
+
+  [data-theme="light"] .edit-input:hover:not(:focus) {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  /* DATA TYPES */
+  .data-flt-no {
+    color: var(--accent-primary);
+    font-weight: 900;
+    font-size: 14px;
+  }
+
+  .icao-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  .data-icao-dep { color: var(--status-warning); }
+  .data-icao-arr { color: var(--status-safe); }
+
+  .data-utc-time {
+    color: var(--data-time);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .data-reg-code {
+    color: var(--data-reg);
+    font-weight: 600;
+    opacity: 0.9;
+  }
+
+  .data-remark {
+    text-align: left !important;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    cursor: help;
+  }
+
+  .flt-table th:nth-child(15),
+  .flt-table td:nth-child(15) {
+    min-width: 140px;
+    max-width: 200px;
+  }
+
+  .edit-atc {
+    width: 60px;
+    height: 24px;
+    padding: 0 !important;
+    font-size: 10px !important;
+    font-weight: 900;
+    border-radius: var(--radius-pill) !important;
+    border: 1px solid transparent !important;
+    text-transform: uppercase;
+  }
+
+  .atc-unsent {
+    background: var(--status-critical-bg) !important;
+    color: var(--status-critical);
+  }
+
+  .atc-sent {
+    background: var(--status-safe-bg) !important;
+    color: var(--status-safe);
+  }
+
+  .cb-action {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+  }
+
+  .btn-hide {
+    background: none;
+    border: none;
+    color: var(--text-disabled);
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+    padding: 4px;
+    border-radius: 50%;
+  }
+
+  .btn-hide:hover {
+    color: var(--status-critical);
+    background: var(--status-critical-bg);
+  }
+
+  /* BUTTONS */
+  .action-btn-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .control-btn {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+    font-family: var(--font-ui);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .control-btn:hover {
+    background: var(--bg-panel-raised);
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+  }
+
+  .btn-solid-primary {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    box-shadow: var(--accent-glow);
+  }
+
+  .btn-solid-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 20px rgba(0, 163, 255, 0.5);
+  }
+
+  .btn-outline-critical {
+    border-color: var(--status-critical);
+    color: var(--status-critical);
+  }
+
+  .btn-outline-critical:hover {
+    background: var(--status-critical-bg);
+  }
+
+  .btn-outline-safe {
+    border-color: var(--status-safe);
+    color: var(--status-safe);
+  }
+
+  .btn-outline-safe:hover {
+    background: var(--status-safe-bg);
+  }
+
+  /* BULK TRAY REDESIGN (VERTICAL CARD) */
+  .occ-bulk-tray {
+    position: fixed;
+    bottom: 90px;
+    /* Di atas FAB */
+    right: 32px;
+    width: 280px;
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    backdrop-filter: blur(20px);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(30px) scale(0.9);
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .occ-bulk-tray.active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* FLOATING ACTION BADGE (FAB) */
+  .bulk-fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 56px;
+    height: 56px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 8px 24px rgba(var(--accent-primary-rgb), 0.4);
+    cursor: pointer;
+    z-index: 1001;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(100px);
+    opacity: 0;
+  }
+
+  .bulk-fab.visible {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .bulk-fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 32px rgba(var(--accent-primary-rgb), 0.6);
+  }
+
+  .bulk-fab-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--status-critical);
+    color: white;
+    font-size: 10px;
+    font-weight: 900;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    border: 2px solid var(--bg-panel-raised);
+    animation: badgePulse 2s infinite;
+  }
+
+  @keyframes badgePulse {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+
+    70% {
+      transform: scale(1.1);
+      box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+  }
+
+  .bulk-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .bulk-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    transition: all 0.4s ease;
+  }
+
+  .occ-bulk-tray.minimized .bulk-body {
+    display: none;
+  }
+
+  .occ-bulk-tray.minimized {
+    width: 240px;
+  }
+
+  .btn-tray-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+
+  .btn-tray-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+  }
+
+  .minimized .btn-tray-toggle {
+    transform: rotate(180deg);
+  }
+
+  .btn-tray-toggle {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+
+  .btn-tray-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+  }
+
+  .minimized .btn-tray-toggle {
+    transform: rotate(180deg);
+  }
+
+  /* MODALS */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 4000;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .modal-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    width: 640px;
+    max-width: 95%;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    background: var(--bg-panel-alt);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header span {
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 0.05em;
+    color: var(--accent-primary);
+  }
+
+  .modal-tabs {
+    display: flex;
+    gap: 12px;
+    background: transparent;
+    padding: 0;
+    margin: 16px 24px 24px 24px;
+    border-radius: 0;
+  }
+
+  .modal-tabs button {
+    flex: 1;
+    padding: 10px 16px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-muted);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 24px;
+    /* Pill Style */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .modal-tabs button.active {
+    color: #ffffff;
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    box-shadow: 0 8px 20px rgba(0, 145, 255, 0.3);
+  }
+
+  .modal-tabs button:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--text-primary);
+  }
+
+  /* PREMIUM DB LIST ITEM */
+  .db-list-item {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+
+  .db-list-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .db-list-item input[type="checkbox"] {
+    margin: 0;
+  }
+
+  .db-flt-tag {
+    color: var(--accent-primary);
+    font-weight: 800;
+    font-size: 13px;
+    width: 65px;
+  }
+
+  .db-route-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+  }
+
+  .db-dof-tag {
+    margin-left: auto;
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+  }
+
+  .modal-body {
+    padding: 0 24px 24px 24px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .modal-input {
+    background: var(--bg-panel-sunken);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    padding: 10px 14px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    transition: 0.2s;
+    caret-color: var(--accent-primary);
+  }
+
+  .modal-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    background: var(--bg-void);
+  }
+
+  [data-theme="light"] .modal-input {
+    caret-color: #000 !important;
+  }
+
+  [data-theme="light"] .modal-input:focus {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* TOOLTIPS */
+  /* TOOLTIPS */
+  .route-icon {
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-muted);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+
+  .route-icon:hover {
+    color: var(--accent-primary);
+    transform: scale(1.1);
+    background: var(--status-info-bg);
+  }
+
+  .route-tooltip {
+    visibility: hidden;
+    position: fixed;
+    z-index: 9999;
+    background: var(--bg-panel-raised);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-accent);
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    width: 340px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: auto;
+    text-align: left;
+  }
+
+  .route-tooltip.visible {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .tt-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .tt-arrow-up {
+    bottom: 100%;
+    border-bottom-color: var(--border-accent);
+  }
+
+  .tt-arrow-down {
+    top: 100%;
+    border-top-color: var(--border-accent);
+  }
+
+  /* TOOLTIP CONTENT STYLES */
+  .tt-section-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tt-route-id {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+  }
+
+  .tt-route-str {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.6;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    word-break: break-all;
+    border: 1px solid var(--border-subtle);
+  }
+
+  [data-theme="light"] .tt-route-str {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  #global-airport-tooltip {
+    position: fixed;
+    z-index: 9999;
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--border-accent);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    width: 300px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s;
+  }
+
+  #global-airport-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  .modal-input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: var(--theme-picker-filter, invert(0.8));
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+
+  .modal-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
+
+  [data-theme="light"] .modal-input::-webkit-calendar-picker-indicator {
+    filter: none;
+    opacity: 0.8;
+  }
+
+  /* CONTEXT MENU */
+  .context-menu {
+    position: fixed;
+    z-index: 5000;
+    background: var(--bg-panel-raised);
+    border: 1px solid var(--border-accent);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    padding: 8px 0;
+    min-width: 220px;
+    backdrop-filter: blur(15px);
+    display: none;
+    animation: cmFadeIn 0.1s ease-out;
+  }
+
+  @keyframes cmFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .context-menu-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .context-menu-item:hover {
+    background: var(--status-info-bg);
+    color: var(--accent-primary);
+    padding-left: 20px;
+  }
+
+  .context-menu-item.critical:hover {
+    background: var(--status-critical-bg);
+    color: var(--status-critical);
+  }
+
+  .context-menu-sep {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 6px 12px;
+  }
+
+  .context-menu-label {
+    padding: 8px 16px 4px 16px;
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+</style>
+
+<div id="view-flight" class="view-section active">
+  <div
+    style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+      <h2 class="header-title">ACTIVE FLIGHT LIST</h2>
+      <div class="header-sub" id="board-subtitle">0 flights active in current session</div>
+    </div>
+    <div class="action-btn-group">
+      <button class="control-btn" onclick="window.toggleFullscreen()">FULLSCREEN</button>
+      <button class="control-btn" onclick="window.toggleCompactMode()">COMPACT</button>
+      <button class="control-btn btn-outline-safe" onclick="window.manualSync()">REFRESH BOARD</button>
+      <div style="width: 1px; height: 20px; background: var(--border-light);"></div>
+      <button class="control-btn btn-outline-critical" onclick="window.clearBoard()">CLEAR ALL</button>
+      <button class="control-btn btn-outline-safe" onclick="window.syncCgoData()">SYNC CGO</button>
+      <button class="control-btn btn-solid-primary" onclick="window.uiOpenAddFlightModal()">+ ADD FLIGHT</button>
+    </div>
+  </div>
+
+  <div id="flight-loading"
+    style="color: var(--status-warning); font-family: var(--font-mono); margin-bottom: 12px; font-weight: 700; font-size: 11px; display: none;">
+    [ SYSTEM SYNC IN PROGRESS... ]</div>
+
+  <!-- QUICK STATS BAR -->
+  <div class="flt-quick-stats" id="flt-quick-stats">
+    <div class="stats-item">
+      <span class="stats-label">ACTIVE BOARD:</span>
+      <span class="stats-val" id="stat-total">0</span>
+    </div>
+    <div class="stats-sep"></div>
+    <div class="stats-item">
+      <span class="stats-label">ATC SENT:</span>
+      <span class="stats-val" id="stat-atc-sent" style="color: var(--status-safe);">0</span>
+    </div>
+    <div class="stats-sep"></div>
+    <div class="stats-item">
+      <span class="stats-label">ATC UNSENT:</span>
+      <span class="stats-val" id="stat-atc-unsent" style="color: var(--status-critical);">0</span>
+    </div>
+    <div class="stats-sep"></div>
+    <div class="stats-item" style="margin-left: auto;">
+      <span class="stats-label">HIDDEN:</span>
+      <span class="stats-val" id="stat-hidden">0</span>
+    </div>
+  </div>
+
+  <div class="flt-table-container" id="board-container">
+    <table id="flight-table" class="flt-table">
+      <thead>
+        <tr>
+          <th style="width: 30px;"><input type="checkbox" id="master-cb" class="cb-action"
+              onchange="toggleMasterSelection(this)"></th>
+          <th>FLIGHT</th>
+          <th>DEP</th>
+          <th>ARR</th>
+          <th>RTE</th>
+          <th>STD (Z)</th>
+          <th>STA (Z)</th>
+          <th>A/C REG</th>
+          <th>ALTN</th>
+          <th>CGO</th>
+          <th>ENR</th>
+          <th>TAF DEP</th>
+          <th>TAF ARR</th>
+          <th>ATC</th>
+          <th>REMARK</th>
+          <th>DOF</th>
+        </tr>
+      </thead>
+      <tbody id="flight-tbody">
+        <tr>
+          <td colspan="16"
+            style="padding: 48px; color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; text-align: center;">
+            AWAITING SYSTEM INITIALIZATION...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div id="bulk-fab" class="bulk-fab" onclick="window.toggleBulkTray()">
+    <span style="font-size: 20px;">⚡</span>
+    <div id="bulk-fab-badge" class="bulk-fab-count">0</div>
+  </div>
+
+  <div id="bulk-action-panel" class="occ-bulk-tray">
+    <div class="bulk-header">
+      <span style="color: var(--accent-primary); font-weight: 800; font-size: 12px; letter-spacing: 0.05em;"
+        id="bulk-count">0 SELECTED</span>
+      <button type="button" onclick="window.toggleBulkTray()"
+        style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px;"
+        title="Close">✕</button>
+    </div>
+
+    <div class="bulk-body">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label
+          style="color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 8px;">Update
+          Date of Flight</label>
+        <input type="date" id="bulk-dof-input" class="modal-input"
+          style="width: 100%; padding: 10px 14px; margin-bottom: 12px;">
+        <button class="control-btn btn-solid-primary" style="width: 100%; height: 40px; justify-content: center;"
+          onclick="window.applyBulkDof()">
+          APPLY TO SELECTED
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="context-menu" class="context-menu">
+    <div class="context-menu-label" id="cm-header">Flight Actions</div>
+    <div class="context-menu-sep"></div>
+    <div class="context-menu-item" onclick="window.uiOpenBulkDofModal()">
+      <span style="font-size: 16px;">📅</span> Edit Date of Flight
+    </div>
+    <div class="context-menu-sep"></div>
+    <div class="context-menu-item critical" onclick="window.cmHideSelected()">
+      <span style="font-size: 16px;">✕</span> Hide Selected from Board
+    </div>
+  </div>
+
+  <div id="modal-bulk-dof" class="modal-overlay" style="display: none;">
+    <div class="modal-box" style="width: 360px;">
+      <div class="modal-header">
+        <span>BULK DOF UPDATE</span>
+        <button class="btn-hide" onclick="window.uiCloseBulkDofModal()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <div class="form-group">
+          <label>NEW DATE OF FLIGHT</label>
+          <input type="date" id="cm-bulk-dof-input" class="modal-input">
+        </div>
+        <div style="margin-top: 24px;">
+          <button class="control-btn btn-solid-primary" style="width: 100%; height: 44px;"
+            onclick="window.applyBulkDofFromCM()">APPLY TO SELECTED</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="global-airport-tooltip">
+  <div id="tooltip-apt-title"
+    style="font-weight: 800; color: var(--accent-primary); margin-bottom: 12px; font-size: 14px; letter-spacing: 0.05em;">
+    ICAO</div>
+  <div id="tooltip-apt-content" style="font-family: var(--font-mono); font-size: 12px; line-height: 1.5;"></div>
+  <button class="edit-notes-btn" onclick="window.openAirportNotesModal()"
+    style="margin-top: 16px; width: 100%; border-radius: var(--radius-sm);">MANAGE NOTES</button>
+</div>
+
+<div id="global-route-tooltip" class="route-tooltip">
+  <div id="route-tooltip-content"></div>
+  <div class="tt-arrow" id="route-tooltip-arrow"></div>
+</div>
+
+<!-- MODALS -->
+<div id="modal-airport-notes" class="modal-overlay" style="display: none;">
+  <div class="modal-box" style="width: 800px;">
+    <div class="modal-header">
+      <span>AIRPORT OPERATIONAL NOTES: <span id="modal-apt-icao-title"></span></span>
+      <button class="btn-hide" onclick="window.closeAirportNotesModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div
+        style="display: grid; grid-template-columns: 1fr 1fr 1fr 2fr 40px; gap: 12px; margin: 16px 0 8px 0; color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase;">
+        <div>Day Range</div>
+        <div>Start (Z)</div>
+        <div>End (Z)</div>
+        <div>Note Content</div>
+        <div></div>
+      </div>
+      <div id="apt-notes-container"></div>
+      <button class="control-btn" style="width: 100%; margin-top: 16px; border-style: dashed;"
+        onclick="window.addNoteRow()">+
+        ADD NEW OPERATIONAL NOTE</button>
+      <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-light);">
+        <button class="control-btn btn-solid-primary" style="width: 100%; height: 44px;" id="btn-save-notes"
+          onclick="window.saveAirportNotesFromModal()">SAVE AIRPORT CONFIGURATION</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-load-flight" class="modal-overlay" style="display: none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span>FLIGHT DATA INJECTION</span>
+      <button class="btn-hide" onclick="window.uiCloseAddFlightModal()">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button id="tab-btn-db" class="active" onclick="window.uiSwitchModalTab('db')">DATABASE REGISTRY</button>
+      <button id="tab-btn-new" onclick="window.uiSwitchModalTab('new')">MANUAL ENTRY</button>
+    </div>
+    <div class="modal-body">
+      <div id="modal-content-db">
+        <input type="text" id="db-search-input" class="modal-input" placeholder="Search by Flight No, DEP or ARR..."
+          onkeyup="window.filterDbList()" style="margin-bottom: 16px;">
+        <div id="db-list-container"
+          style="border: 1px solid var(--border-light); border-radius: var(--radius-sm); max-height: 250px; overflow-y: auto; margin-bottom: 24px; background: var(--bg-panel-sunken);">
+        </div>
+        <button class="control-btn btn-solid-primary" style="width: 100%; height: 44px;"
+          onclick="window.addSelectedFromDb()">PULL SELECTED TO MONITOR</button>
+      </div>
+      <form id="modal-content-new" style="display: none;" onsubmit="window.submitNewFlight(event)">
+        <div class="form-grid">
+          <div class="form-group"><label>Flight No</label><input required class="modal-input" id="fn-flt"
+              placeholder="AWQ123"></div>
+          <div class="form-group"><label>DOF</label><input required type="date" class="modal-input" id="fn-dof"></div>
+          <div class="form-group"><label>Departure</label><input required class="modal-input" id="fn-dep"
+              placeholder="WIII"></div>
+          <div class="form-group"><label>Arrival</label><input required class="modal-input" id="fn-arr"
+              placeholder="WADD"></div>
+          <div class="form-group"><label>STD (UTC)</label><input required type="text" class="modal-input" id="fn-std"
+              placeholder="HHMM"></div>
+          <div class="form-group"><label>STA (UTC)</label><input required type="text" class="modal-input" id="fn-sta"
+              placeholder="HHMM"></div>
+          <div class="form-group"><label>Registration</label><select required class="modal-input" id="fn-reg"></select>
+          </div>
+          <div class="form-group"><label>Alternate</label><input required class="modal-input" id="fn-alt"
+              style="text-transform:uppercase;"></div>
+          <div class="form-group"><label>ATC Connection</label>
+            <select required class="modal-input" id="fn-atc">
+              <option value="0">NOT APPLICABLE</option>
+              <option value="1">REQUIRED (🔴)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>TAF DEP</label><input class="modal-input" id="fn-tafdep" placeholder="3"></div>
+          <div class="form-group"><label>TAF ARR</label><input class="modal-input" id="fn-tafarr" placeholder="5"></div>
+          <div class="form-group"><label>Cargo Weight (CGO)</label><input class="modal-input" id="fn-cgo" placeholder="e.g. 1500"></div>
+          <div class="form-group"><label>Remark</label><input class="modal-input" id="fn-rem"></div>
+        </div>
+        <button type="submit" class="control-btn btn-solid-primary" style="width: 100%; margin-top: 16px; height: 44px;"
+          id="btn-submit-new">COMMIT TO DATABASE</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="modal-enr" class="modal-overlay" style="display: none;">
+  <div class="modal-box" style="width: 440px;">
+    <div class="modal-header">
+      <span>EDIT ENROUTE SECTORS</span>
+      <button class="btn-hide" onclick="window.closeEnrModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding: 24px;">
+      <form id="form-enr" onsubmit="window.submitEnr(event)">
+        <input type="hidden" id="enr-rowidx">
+        <div class="form-group"><label>Enroute Sector 1</label><input class="modal-input" id="enr-1"
+            style="text-transform:uppercase;" placeholder="E.g. WAAA"></div>
+        <div class="form-group"><label>Enroute Sector 2</label><input class="modal-input" id="enr-2"
+            style="text-transform:uppercase;" placeholder="E.g. WBBB"></div>
+        <div class="form-group"><label>Enroute Sector 3</label><input class="modal-input" id="enr-3"
+            style="text-transform:uppercase;" placeholder="E.g. WCCC"></div>
+        <button type="submit" class="control-btn btn-solid-primary" style="width: 100%; margin-top: 24px; height: 44px;"
+          id="btn-submit-enr">UPDATE SECTORS</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="modal-route" class="modal-overlay" style="display: none;">
+  <div class="modal-box" style="width: 600px;">
+    <div class="modal-header">
+      <span>ROUTE MANAGEMENT: <span id="route-flt-title"></span></span>
+      <button class="btn-hide" onclick="window.closeRouteModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding: 24px;">
+      <input type="hidden" id="route-dep">
+      <input type="hidden" id="route-arr">
+
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom: 24px;">
+        <div class="form-group">
+          <label>ROUTING PROFILE</label>
+          <select id="route-selector" class="modal-input" onchange="window.handleRouteSelectionChange()"></select>
+        </div>
+        <div class="form-group">
+          <label>ROUTE ID</label>
+          <input type="text" class="modal-input" id="route-id-input" style="text-transform:uppercase; font-weight:700;"
+            title="Edit Route ID/Name">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 2fr; gap:16px; margin-bottom: 16px;">
+        <div class="form-group"><label>DEP RWY</label><input type="text" class="modal-input" id="route-dep-rwy"
+            style="text-transform:uppercase;"></div>
+        <div class="form-group"><label>SID</label><input type="text" class="modal-input" id="route-sid"
+            style="text-transform:uppercase;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>AIRWAY & FIX SEQUENCE</label>
+        <textarea class="modal-input" id="route-waypoint"
+          style="text-transform:uppercase; min-height: 80px; resize: vertical; line-height: 1.6; font-size: 14px;"></textarea>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom: 24px;">
+        <div class="form-group"><label>STAR</label><input type="text" class="modal-input" id="route-star"
+            style="text-transform:uppercase;"></div>
+        <div class="form-group"><label>ARR RWY</label><input type="text" class="modal-input" id="route-arr-rwy"
+            style="text-transform:uppercase;"></div>
+      </div>
+
+      <div
+        style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border-light);">
+        <button class="control-btn" style="height: 44px;" id="btn-set-active" onclick="window.setAsActiveRoute()">SET AS
+          ACTIVE</button>
+        <button class="control-btn btn-solid-primary" style="height: 44px;" id="btn-save-route"
+          onclick="window.submitRoute()">SAVE TO DATABASE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========================================================
+  // GLOBAL STATE & DIAGNOSTICS
+  // =========================================================
+  console.log('[SYSTEM] Flight_Ui script block loaded.');
+  
+  // Immediate visual feedback to confirm script is running
+  (function() {
+    const tb = document.getElementById('flight-tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="16" style="padding:48px; text-align:center; color:var(--status-warning); font-family:var(--font-mono); font-size:12px;">[ SYSTEM : EXECUTING CORE LOGIC... ]</td></tr>';
+  })();
+
+  window.allDbFlights = window.allDbFlights || [];
+  window.acList = window.acList || [];
+  window.globalSelectedFlights = window.globalSelectedFlights || [];
+  window.airportNotes = window.airportNotes || [];
+  
+  // Unified State for Active Board
+  window.activeBoardRowIds = window.activeBoardRowIds || [];
+  try {
+    const saved = localStorage.getItem('occ_active_board');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) window.activeBoardRowIds = parsed;
+    }
+  } catch (e) { 
+    console.warn('LocalStorage access failed:', e);
+  }
+
+  // Local alias for convenience, but we'll use window. prefix for clarity in critical paths
+  var activeBoardRowIds = window.activeBoardRowIds;
+
+  let draggedRowIndex = null;
+  let isCompact = false;
+  let currentTooltipIcao = "";
+  let tooltipHideTimeout;
+  const daysOfWeek = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+  // =========================================================
+  // UTILITIES (HOISTED)
+  // =========================================================
+  function formatToUiDate(yyyymmdd) {
+    if (!yyyymmdd) return "";
+    let str = String(yyyymmdd).trim();
+    if (str.length === 8) return `${str.substring(0, 4)}-${str.substring(4, 6)}-${str.substring(6, 8)}`;
+    return "";
+  }
+  window.formatToUiDate = formatToUiDate;
+
+  function parseToDbDate(yyyy_mm_dd) {
+    if (!yyyy_mm_dd) return "";
+    return String(yyyy_mm_dd).replace(/-/g, '');
+  }
+  window.parseToDbDate = parseToDbDate;
+
+  function timeToMins(tStr) {
+    if (!tStr) return 0;
+    let s = String(tStr).replace(/[^0-9]/g, '').padStart(4, '0');
+    return parseInt(s.substring(0, 2)) * 60 + parseInt(s.substring(2, 4));
+  }
+
+  function isTimeOverlap(flightDof, flightTime, noteDayRange, noteStart, noteEnd) {
+    if (!flightDof || !flightTime || !noteStart || !noteEnd) return false;
+    let dofStr = String(flightDof).replace(/-/g, '');
+    let y = parseInt(dofStr.substring(0, 4));
+    let m = parseInt(dofStr.substring(4, 6)) - 1;
+    let d = parseInt(dofStr.substring(6, 8));
+    let fltDate = new Date(Date.UTC(y, m, d));
+    if (isNaN(fltDate.getTime())) return false;
+    let curDayIdx = fltDate.getUTCDay();
+    let dayMatch = false;
+    let rangeStr = String(noteDayRange || "-").trim().toUpperCase();
+    if (rangeStr === "-") {
+      dayMatch = true;
+    } else if (rangeStr.includes("-")) {
+      let parts = rangeStr.split("-").map(s => s.trim());
+      let sIdx = daysOfWeek.indexOf(parts[0]);
+      let eIdx = daysOfWeek.indexOf(parts[1]);
+      if (sIdx !== -1 && eIdx !== -1) {
+        if (sIdx <= eIdx) dayMatch = (curDayIdx >= sIdx && curDayIdx <= eIdx);
+        else dayMatch = (curDayIdx >= sIdx || curDayIdx <= eIdx);
+      }
+    } else {
+      dayMatch = (rangeStr === daysOfWeek[curDayIdx]);
+    }
+    if (!dayMatch) return false;
+    let fMins = timeToMins(flightTime);
+    let sMins = timeToMins(noteStart);
+    let eMins = timeToMins(noteEnd);
+    let bufStart = sMins - 60;
+    let bufEnd = eMins + 60;
+    if (bufStart < 0) bufStart += 1440;
+    if (bufEnd >= 1440) bufEnd -= 1440;
+    if (bufStart <= bufEnd) return (fMins >= bufStart && fMins <= bufEnd);
+    return (fMins >= bufStart || fMins <= bufEnd);
+  }
+
+  window.getSelectedFlightObjects = function () { 
+    return window.globalSelectedFlights.map(id => window.allDbFlights.find(f => f && f.rowIdx === id)).filter(Boolean); 
+  };
+
+  // =========================================================
+  // INITIALIZATION & DATA LOADING
+  // =========================================================
+  function initFlightData() {
+    console.log('[SYSTEM] initFlightData triggered.');
+    const loader = document.getElementById('flight-loading');
+    if (loader) {
+      loader.innerText = '[ SYSTEM SYNC IN PROGRESS... ]';
+      loader.style.display = 'block';
+    }
+    
+    const dbStat = document.getElementById('sys-db-status');
+    if (dbStat) { 
+      dbStat.innerText = 'SYNCING...'; 
+      dbStat.style.color = 'var(--status-warning)'; 
+    }
+
+    // Safety fallback: if no response in 10 seconds, force render what we have
+    const syncTimeout = setTimeout(() => {
+      console.warn('[SYSTEM] Sync timeout reached. Rendering local state.');
+      if (loader) loader.style.display = 'none';
+      renderBoard();
+    }, 10000);
+
+    // Load Airport Notes
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withFailureHandler(err => console.warn("Airport Notes Fetch Failed:", err))
+        .withSuccessHandler(notes => {
+          window.airportNotes = notes || [];
+        }).getAirportNotes();
+
+      // Load Dashboard Data
+      google.script.run
+        .withFailureHandler(err => {
+          clearTimeout(syncTimeout);
+          console.error("Dashboard Data Fetch Failed:", err);
+          if (loader) loader.style.display = 'none';
+          if (dbStat) { dbStat.innerText = 'OFFLINE'; dbStat.style.color = 'var(--status-critical)'; }
+          const tbody = document.getElementById('flight-tbody');
+          if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="16" style="padding: 48px; color: var(--status-critical); font-family: var(--font-mono); font-size: 12px; text-align: center;">DATABASE CONNECTION ERROR<br><br><span style="opacity:0.5;">${err.message || err}</span><br><br><button class="control-btn" onclick="window.initFlightData()">RETRY CONNECTION</button></td></tr>`;
+          }
+        })
+        .withSuccessHandler((data) => {
+          clearTimeout(syncTimeout);
+          console.log('[SYSTEM] Dashboard data received.');
+          if (data) {
+            window.allDbFlights = Array.isArray(data.flights) ? data.flights : [];
+            window.acList = Array.isArray(data.acList) ? data.acList : [];
+          }
+
+          if (loader) loader.style.display = 'none';
+          if (dbStat) { dbStat.innerText = 'CONNECTED'; dbStat.style.color = 'var(--status-safe)'; }
+          renderBoard();
+        }).getFlightDashboardData();
+    } else {
+      clearTimeout(syncTimeout);
+      console.error("[SYSTEM] google.script.run not found. Local testing?");
+      if (dbStat) { dbStat.innerText = 'LOCAL'; dbStat.style.color = 'var(--status-warning)'; }
+      renderBoard();
+    }
+  }
+  window.initFlightData = initFlightData;
+
+  function runInitSequence() {
+    try {
+      console.log('[SYSTEM] Running Initialization Sequence...');
+      initFlightData();
+      initTooltipDelegation();
+      initContextMenu();
+    } catch (err) {
+      console.error("[CRITICAL] Initialization Sequence Failed:", err);
+    }
+  }
+
+  // =========================================================
+  // BOARD RENDERING
+  // =========================================================
+  function renderBoard() {
+    const tbody = document.getElementById('flight-tbody');
+    if (!tbody) return;
+    try {
+      tbody.innerHTML = '';
+      let safeDbFlights = Array.isArray(window.allDbFlights) ? window.allDbFlights : [];
+      let boardFlights = (window.activeBoardRowIds || []).map(id => safeDbFlights.find(f => f && f.rowIdx === id)).filter(Boolean);
+      window.globalSelectedFlights = (window.globalSelectedFlights || []).filter(selId => boardFlights.some(b => b.rowIdx === selId));
+
+      document.getElementById('board-subtitle').innerText = `${boardFlights.length} flights on board`;
+      if (document.getElementById('sys-board-count')) document.getElementById('sys-board-count').innerText = boardFlights.length;
+
+      if (boardFlights.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="16" style="color:var(--text-disabled); font-family:var(--font-mono); padding:40px; font-size:12px; text-align:center;">[ BOARD IS CURRENTLY EMPTY ]<br><br><button class="control-btn btn-solid-primary" onclick="window.uiOpenAddFlightModal()">+ ADD FLIGHT FROM DATABASE</button></td></tr>`;
+        window.updateSelectionUI(); 
+        localStorage.setItem('occ_active_board', JSON.stringify(window.activeBoardRowIds)); 
+        return;
+      }
+
+      let safeAcList = Array.isArray(window.acList) ? window.acList : [];
+
+      boardFlights.forEach((f, idx) => {
+        try {
+          let atcHtml = "";
+          if (f.ATC !== '0' && f.ATC !== '') {
+            let isSent = (f.ATC === 'SENT'); 
+            let atcClass = isSent ? 'atc-sent' : 'atc-unsent'; 
+            let atcText = isSent ? 'SENT' : 'UNSENT';
+            atcHtml = `<select class="edit-input edit-atc ${atcClass}" onchange="window.saveData(${f.rowIdx}, 14, this, 'text')" title="${atcText}"><option value="UNSENT" ${!isSent ? 'selected' : ''}>🔴</option><option value="SENT" ${isSent ? 'selected' : ''}>🟢</option></select>`;
+          }
+
+          let tooltipHtml = '';
+          let routesArray = Array.isArray(f.ROUTES) ? f.ROUTES : [];
+          let hasAltClass = (routesArray.length > 1) ? 'has-alt' : '';
+          let iconStr = (routesArray.length > 0) ? '✈' : '🚫';
+
+          if (routesArray.length > 0) {
+            let activeRouteId = f.ACTIVE_ROUTE_ID || (f.DEP + f.ARR + '10');
+            let activeRoute = routesArray.find(r => r && String(r.ID) === activeRouteId);
+            if (!activeRoute && routesArray.length > 0) activeRoute = routesArray[0];
+
+            if (activeRoute) {
+              tooltipHtml += `
+                    <div class="tt-section-label" style="color: var(--status-safe);">
+                      <span style="width: 6px; height: 6px; background: var(--status-safe); border-radius: 50%;"></span>
+                      ACTIVE ROUTING
+                    </div>
+                    <div class="tt-route-id">${activeRoute.ID}</div>
+                    <div class="tt-route-str">${activeRoute.ROUTE_STRING || 'NO WAYPOINTS DEFINED'}</div>
+                  `;
+            }
+
+            let otherRoutes = routesArray.filter(r => r && r.ID !== (activeRoute ? activeRoute.ID : null));
+            if (otherRoutes.length > 0) {
+              tooltipHtml += `<div style="margin: 16px 0 12px 0; border-top: 1px solid var(--border-subtle);"></div>`;
+              otherRoutes.forEach(alt => {
+                tooltipHtml += `
+                        <div class="tt-section-label" style="color: var(--text-muted);">
+                          <span style="width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%;"></span>
+                          AVAILABLE ALTERNATE
+                        </div>
+                        <div class="tt-route-id" style="color: var(--text-muted);">${alt.ID}</div>
+                        <div class="tt-route-str" style="font-size: 10px; opacity: 0.7;">${alt.ROUTE_STRING || '-'}</div>
+                      `;
+              });
+            }
+          } else {
+            tooltipHtml = `
+              <div class="tt-section-label" style="color: var(--status-critical);">⚠️ ATTENTION REQUIRED</div>
+              <div class="tt-route-str" style="text-align: center; padding: 20px;">NO ROUTE DATA FOUND IN DATABASE</div>
+            `;
+          }
+
+          let acOptions = safeAcList.map(ac => `<option value="${ac}" ${f.REG === ac ? 'selected' : ''}>${ac}</option>`).join('');
+          const tr = document.createElement('tr'); 
+          tr.className = 'draggable'; 
+          tr.draggable = true; 
+          tr.dataset.boardIdx = idx; 
+          tr.dataset.rowIdx = f.rowIdx;
+          tr.addEventListener('dragstart', handleDragStart); 
+          tr.addEventListener('dragover', handleDragOver); 
+          tr.addEventListener('drop', handleDrop); 
+          tr.addEventListener('dragleave', handleDragLeave);
+
+          tr.innerHTML = `
+            <td><input type="checkbox" class="cb-action row-cb" onchange="window.toggleFlightSelection(${f.rowIdx})"></td>
+            <td><input class="edit-input data-flt-no" style="width:55px;" type="text" value="${f.FLIGHT || ''}" onchange="window.saveData(${f.rowIdx}, 1, this, 'text')"></td>
+            <td>
+              <div class="icao-tag"><input class="edit-input data-icao-dep" style="width:45px; padding:0; height:auto;" type="text" value="${f.DEP || ''}" onchange="window.saveData(${f.rowIdx}, 2, this, 'text')"></div>
+            </td>
+            <td>
+              <div class="icao-tag"><input class="edit-input data-icao-arr" style="width:45px; padding:0; height:auto;" type="text" value="${f.ARR || ''}" onchange="window.saveData(${f.rowIdx}, 3, this, 'text')"></div>
+            </td>
+            <td>
+              <div class="route-icon ${hasAltClass}" data-row-idx="${f.rowIdx}" data-tooltip='${tooltipHtml.replace(/'/g, "&apos;")}'>
+                ${iconStr}
+              </div>
+            </td>
+            <td><input class="edit-input data-utc-time" style="width:60px;" type="text" maxlength="5" value="${f.STD || ''}" placeholder="00:00" onchange="window.handleTimeInput(event, ${f.rowIdx}, 4)"></td>
+            <td><input class="edit-input data-utc-time" style="width:60px;" type="text" maxlength="5" value="${f.STA || ''}" placeholder="00:00" onchange="window.handleTimeInput(event, ${f.rowIdx}, 5)"></td>
+             <td><select class="edit-input data-reg-code" style="width: 80px;" onchange="window.saveData(${f.rowIdx}, 6, this, 'text')"><option value="">- NIL -</option>${acOptions}</select></td>
+            <td><input class="edit-input" style="width:45px" type="text" value="${f.ALT || ''}" onchange="window.saveData(${f.rowIdx}, 7, this, 'text')"></td>
+            <td><input class="edit-input" style="width:55px; color:var(--accent-primary); font-weight:700;" type="text" value="${f.CGO || ''}" onchange="window.saveData(${f.rowIdx}, 13, this, 'text')"></td>
+            <td><button class="control-btn" style="padding: 2px 6px;" onclick="window.openEnrModal(${f.rowIdx})" title="Edit ENR">ENR</button></td>
+            <td><input class="edit-input" style="width:95px" type="text" value="${f.TAF_DEP || ''}" onchange="window.saveData(${f.rowIdx}, 8, this, 'text')"></td>
+            <td><input class="edit-input" style="width:95px" type="text" value="${f.TAF_ARR || ''}" onchange="window.saveData(${f.rowIdx}, 9, this, 'text')"></td>
+            <td>${atcHtml}</td>
+            <td><input class="edit-input data-remark" type="text" value="${f.REMARK || ''}" title="${f.REMARK || 'No remarks defined'}" onchange="window.saveData(${f.rowIdx}, 15, this, 'text'); this.title=this.value;"></td>
+            <td><input class="edit-input" style="width:115px;" type="date" value="${formatToUiDate(f.DOF)}" onchange="window.saveData(${f.rowIdx}, 16, this, 'date')"></td>
+          `;
+          tbody.appendChild(tr);
+        } catch (innerErr) { console.warn("Skip Corrupt Row Data: ", f, innerErr); }
+      });
+
+      window.updateSelectionUI(); 
+      localStorage.setItem('occ_active_board', JSON.stringify(window.activeBoardRowIds));
+      if (window.updateQuickStats) window.updateQuickStats();
+      if (typeof refreshCurrentTabIfNeeded === 'function') refreshCurrentTabIfNeeded();
+    } catch (outerErr) { 
+      console.error("FATAL UI ERROR: ", outerErr); 
+      tbody.innerHTML = `<tr><td colspan="16" style="padding: 24px; color: var(--status-critical); font-family: var(--font-mono); font-size: 12px; text-align: center;">UI RENDER ERROR: ${outerErr.message}</td></tr>`; 
+    }
+  }
+  window.renderBoard = renderBoard;
+
+  // =========================================================
+  // TOOLTIP DELEGATION
+  // =========================================================
+  function initTooltipDelegation() {
+    const board = document.getElementById('board-container');
+    const aptTooltip = document.getElementById('global-airport-tooltip');
+    const rteTooltip = document.getElementById('global-route-tooltip');
+    if (!board) return;
+
+    // AIRPORT TOOLTIP
+    board.addEventListener('mouseover', (e) => {
+      if (e.target.classList.contains('data-icao-dep') || e.target.classList.contains('data-icao-arr')) {
+        clearTimeout(tooltipHideTimeout);
+        renderAirportTooltip(e.target);
+      }
+    });
+
+    board.addEventListener('mouseout', (e) => {
+      if (e.target.classList.contains('data-icao-dep') || e.target.classList.contains('data-icao-arr')) {
+        tooltipHideTimeout = setTimeout(() => { if (aptTooltip) aptTooltip.classList.remove('visible'); }, 300);
+      }
+    });
+
+    // RTE TOOLTIP (CLICK TRIGGER)
+    board.addEventListener('click', (e) => {
+      const icon = e.target.closest('.route-icon');
+      if (icon) {
+        e.stopPropagation();
+        clearTimeout(tooltipHideTimeout);
+        renderRouteTooltip(icon);
+      }
+    });
+
+    // Global Close on Outside Click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.route-tooltip') && !e.target.closest('.route-icon')) {
+        if (rteTooltip) rteTooltip.classList.remove('visible');
+      }
+      if (!e.target.closest('#global-airport-tooltip') && !e.target.closest('.data-icao-dep') && !e.target.closest('.data-icao-arr')) {
+        if (aptTooltip) aptTooltip.classList.remove('visible');
+      }
+    });
+
+    // HOVER KEEP-ALIVE for Tooltips
+    [aptTooltip, rteTooltip].forEach(tt => {
+      if (!tt) return;
+      tt.addEventListener('mouseover', () => clearTimeout(tooltipHideTimeout));
+      tt.addEventListener('mouseout', () => {
+        if (tt.id === 'global-airport-tooltip') {
+          tooltipHideTimeout = setTimeout(() => { tt.classList.remove('visible'); }, 300);
+        }
+      });
+    });
+  }
+
+  function renderAirportTooltip(inputEl) {
+    const icao = inputEl.value.toUpperCase();
+    if (!icao) return;
+
+    currentTooltipIcao = icao;
+    const isDep = inputEl.classList.contains('data-icao-dep');
+    const tr = inputEl.closest('tr');
+    const rowIdx = tr ? parseInt(tr.dataset.rowIdx) : null;
+    let flight = window.allDbFlights.find(f => f && f.rowIdx === rowIdx);
+
+    let timeToCheck = flight ? (isDep ? flight.STD : flight.STA) : null;
+    let dofToCheck = flight ? flight.DOF : null;
+    let notes = window.airportNotes.filter(n => n.ICAO_CODE === icao);
+
+    const content = document.getElementById('tooltip-apt-content');
+    const title = document.getElementById('tooltip-apt-title');
+    if (title) title.innerText = `${icao} NOTES`;
+
+    if (notes.length === 0) {
+      if (content) content.innerHTML = `<div style="color:var(--text-disabled); font-style:italic;">No active restrictions or notes.</div>`;
+    } else {
+      let html = '';
+      notes.forEach(n => {
+        let isOverlap = false;
+        if (flight) isOverlap = isTimeOverlap(dofToCheck, timeToCheck, n.DAY_RANGE, n.START_TIME, n.END_TIME);
+        let warnClass = isOverlap ? 'note-warning' : '';
+        let warnText = isOverlap ? `<div class="note-critical-text">⚠️ FLIGHT IN RESTRICTION WINDOW</div>` : '';
+        html += `
+        <div class="apt-note-item ${warnClass}">
+          <div class="note-time-badge">${n.DAY_RANGE} | ${n.START_TIME}Z - ${n.END_TIME}Z</div>
+          ${warnText}
+          <div style="line-height: 1.3;">${n.NOTE_TEXT}</div>
+        </div>
+      `;
+      });
+      if (content) content.innerHTML = html;
+    }
+
+    const tooltip = document.getElementById('global-airport-tooltip');
+    if (!tooltip) return;
+    tooltip.classList.add('visible');
+
+    const rect = inputEl.getBoundingClientRect();
+    let top = rect.bottom + 5;
+    let left = rect.left;
+
+    setTimeout(() => {
+      const ttRect = tooltip.getBoundingClientRect();
+      if (left + ttRect.width > window.innerWidth) left = window.innerWidth - ttRect.width - 10;
+      if (top + ttRect.height > window.innerHeight) top = rect.top - ttRect.height - 5;
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${top}px`;
+    }, 10);
+  }
+
+  function renderRouteTooltip(iconEl) {
+    const contentDiv = document.getElementById('route-tooltip-content');
+    const tooltip = document.getElementById('global-route-tooltip');
+    const arrow = document.getElementById('route-tooltip-arrow');
+    if (!tooltip || !contentDiv) return;
+
+    const contentHtml = iconEl.dataset.tooltip;
+    const rowIdx = iconEl.dataset.rowIdx;
+    if (!contentHtml) return;
+
+    contentDiv.innerHTML = contentHtml + `
+      <div style="margin-top:16px; border-top: 1px solid var(--border-subtle); padding-top:12px;">
+        <button class="control-btn btn-solid-primary" style="width:100%; height:32px; font-size:11px; font-weight:800;" onclick="window.openRouteModal(${rowIdx}); document.getElementById('global-route-tooltip').classList.remove('visible');">
+          ⚙️ MANAGE ROUTE PROFILES
+        </button>
+      </div>
+    `;
+    tooltip.classList.add('visible');
+
+    const rect = iconEl.getBoundingClientRect();
+    const ttRect = tooltip.getBoundingClientRect();
+
+    let left = rect.left + (rect.width / 2) - (ttRect.width / 2);
+    let top = rect.top - ttRect.height - 12;
+    let useBottom = false;
+
+    if (top < 10) {
+      top = rect.bottom + 12;
+      useBottom = true;
+    }
+    if (left < 10) left = 10;
+    if (left + ttRect.width > window.innerWidth) left = window.innerWidth - ttRect.width - 10;
+
+    if (arrow) arrow.className = 'tt-arrow ' + (useBottom ? 'tt-arrow-up' : 'tt-arrow-down');
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.style.transform = useBottom ? 'translateY(-5px)' : 'translateY(5px)';
+
+    setTimeout(() => {
+      tooltip.style.transform = 'translateY(0)';
+    }, 10);
+  }
+
+  // =========================================================
+  // CONTEXT MENU LOGIC
+  // =========================================================
+  function initContextMenu() {
+    const cm = document.getElementById('context-menu');
+    const boardTbody = document.getElementById('flight-tbody');
+    if (!boardTbody || !cm) return;
+
+    boardTbody.addEventListener('contextmenu', (e) => {
+      const tr = e.target.closest('tr');
+      if (!tr || !tr.dataset.rowIdx) return;
+
+      e.preventDefault();
+      const rowIdx = parseInt(tr.dataset.rowIdx);
+
+      if (!window.globalSelectedFlights.includes(rowIdx)) {
+        window.globalSelectedFlights = [rowIdx];
+        window.updateSelectionUI();
+      }
+
+      const count = window.globalSelectedFlights.length;
+      const header = document.getElementById('cm-header');
+      if (header) header.innerText = `${count} FLIGHT${count > 1 ? 'S' : ''} SELECTED`;
+
+      cm.style.display = 'block';
+      cm.style.left = `${e.clientX}px`;
+      cm.style.top = `${e.clientY}px`;
+
+      const rect = cm.getBoundingClientRect();
+      if (rect.right > window.innerWidth) cm.style.left = `${window.innerWidth - rect.width - 10}px`;
+      if (rect.bottom > window.innerHeight) cm.style.top = `${window.innerHeight - rect.height - 10}px`;
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.context-menu')) {
+        cm.style.display = 'none';
+      }
+    });
+  }
+
+  // =========================================================
+  // DRAG AND DROP
+  // =========================================================
+  window.handleTimeInput = function (e, rowIdx, colIdx) { 
+    let inputElem = e.target; 
+    let val = inputElem.value.replace(/[^0-9]/g, ''); 
+    if (val.length === 4) val = val.substring(0, 2) + ':' + val.substring(2, 4); 
+    else if (val.length === 3) val = '0' + val.substring(0, 1) + ':' + val.substring(1, 3); 
+    inputElem.value = val; 
+    window.saveData(rowIdx, colIdx, inputElem, 'text'); 
+  };
+  
+  function handleDragStart(e) { draggedRowIndex = parseInt(e.currentTarget.dataset.boardIdx); e.dataTransfer.effectAllowed = 'move'; e.currentTarget.style.opacity = '0.5'; }
+  function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('state-drag-target'); }
+  function handleDragLeave(e) { e.currentTarget.classList.remove('state-drag-target'); }
+  function handleDrop(e) { 
+    e.preventDefault(); 
+    e.currentTarget.classList.remove('state-drag-target'); 
+    let targetRowIndex = parseInt(e.currentTarget.dataset.boardIdx); 
+    if (draggedRowIndex === targetRowIndex || draggedRowIndex === null) return; 
+    let movedId = activeBoardRowIds.splice(draggedRowIndex, 1)[0]; 
+    activeBoardRowIds.splice(targetRowIndex, 0, movedId); 
+    renderBoard(); 
+  }
+
+  // =========================================================
+  // SELECTION & BULK ACTIONS
+  // =========================================================
+  window.toggleMasterSelection = function (masterCb) {
+    window.globalSelectedFlights = masterCb.checked ? [...activeBoardRowIds] : [];
+    window.updateSelectionUI();
+  };
+
+  window.toggleFlightSelection = function (rowIdx) {
+    if (!window.globalSelectedFlights.includes(rowIdx)) window.globalSelectedFlights.push(rowIdx);
+    else window.globalSelectedFlights = window.globalSelectedFlights.filter(id => id !== rowIdx);
+    window.updateSelectionUI();
+  };
+
+  window.clearSelection = function () {
+    window.globalSelectedFlights = [];
+    const masterCb = document.getElementById('master-cb');
+    if (masterCb) masterCb.checked = false;
+    window.updateSelectionUI();
+  };
+
+  window.updateSelectionUI = function () {
+    const rows = document.querySelectorAll('#flight-tbody tr');
+    let allChecked = true;
+    let anyVisible = false;
+
+    rows.forEach(tr => {
+      if (!tr.dataset.rowIdx) return;
+      anyVisible = true;
+      const rowIdx = parseInt(tr.dataset.rowIdx);
+      const cb = tr.querySelector('.row-cb');
+      const isSelected = window.globalSelectedFlights.includes(rowIdx);
+
+      if (isSelected) {
+        tr.classList.add('selected-row');
+        if (cb) cb.checked = true;
+      } else {
+        tr.classList.remove('selected-row');
+        if (cb) cb.checked = false;
+        allChecked = false;
+      }
+    });
+
+    const masterCb = document.getElementById('master-cb');
+    if (masterCb) masterCb.checked = (allChecked && anyVisible);
+
+    const count = window.globalSelectedFlights.length;
+    
+    // Update Badge & Counts
+    const fab = document.getElementById('bulk-fab');
+    const badge = document.getElementById('bulk-fab-badge');
+    const trayCount = document.getElementById('bulk-count');
+    const reportDot = document.getElementById('nav-report-dot');
+
+    if (fab) {
+      if (count > 0) fab.classList.add('visible');
+      else {
+        fab.classList.remove('visible');
+        const tray = document.getElementById('bulk-action-panel');
+        if (tray) tray.classList.remove('active');
+      }
+    }
+    
+    if (badge) badge.innerText = count;
+    if (trayCount) trayCount.innerText = `${count} SELECTED`;
+    if (reportDot) reportDot.style.display = count > 0 ? 'inline-block' : 'none';
+  };
+
+  window.toggleBulkTray = function () {
+    const tray = document.getElementById('bulk-action-panel');
+    if (tray) tray.classList.toggle('active');
+  };
+
+  window.applyBulkDof = function () {
+    const input = document.getElementById('bulk-dof-input');
+    if (!input) return;
+    const newDof = input.value;
+    if (!newDof) return alert("Please select a valid Date of Flight.");
+
+    if (!confirm(`Apply new DOF (${newDof}) to ${window.globalSelectedFlights.length} selected flights?`)) return;
+
+    const loader = document.getElementById('flight-loading');
+    if (loader) loader.style.display = 'block';
+
+    const tray = document.getElementById('bulk-action-panel');
+    if (tray) tray.classList.remove('active');
+
+    google.script.run
+      .withSuccessHandler((updatedDb) => {
+        window.allDbFlights = Array.isArray(updatedDb.flights) ? updatedDb.flights : [];
+        window.globalSelectedFlights = [];
+        if (input) input.value = "";
+        if (loader) loader.style.display = 'none';
+        renderBoard();
+      })
+      .withFailureHandler(err => {
+        if (loader) loader.style.display = 'none';
+        alert('Unable to update DOF. Please try again.');
+        console.error('Bulk DOF update failed:', err);
+      })
+      .bulkUpdateFlightDof(window.globalSelectedFlights, newDof);
+  };
+
+  window.uiOpenBulkDofModal = function () {
+    document.getElementById('context-menu').style.display = 'none';
+    document.getElementById('modal-bulk-dof').style.display = 'flex';
+  };
+
+  window.uiCloseBulkDofModal = function () {
+    document.getElementById('modal-bulk-dof').style.display = 'none';
+  };
+
+  window.cmHideSelected = function () {
+    document.getElementById('context-menu').style.display = 'none';
+    if (window.globalSelectedFlights.length === 0) return;
+    if (!confirm(`Hide ${window.globalSelectedFlights.length} selected flights from board?`)) return;
+    window.activeBoardRowIds = (window.activeBoardRowIds || []).filter(id => !window.globalSelectedFlights.includes(id));
+    window.globalSelectedFlights = [];
+    renderBoard();
+  };
+
+
+  window.applyBulkDofFromCM = function () {
+    const input = document.getElementById('cm-bulk-dof-input');
+    if (!input) return;
+    const newDof = input.value;
+    if (!newDof) return alert("Please select a valid date.");
+
+    if (!confirm(`Apply new DOF (${newDof}) to ${window.globalSelectedFlights.length} selected flights?`)) return;
+
+    document.getElementById('flight-loading').style.display = 'block';
+    window.uiCloseBulkDofModal();
+
+    google.script.run
+      .withSuccessHandler((updatedDb) => {
+        window.allDbFlights = Array.isArray(updatedDb.flights) ? updatedDb.flights : [];
+        window.globalSelectedFlights = [];
+        input.value = "";
+        document.getElementById('flight-loading').style.display = 'none';
+        renderBoard();
+      })
+      .withFailureHandler(err => {
+        document.getElementById('flight-loading').style.display = 'none';
+        alert('Unable to update selected flights. Please try again.');
+        console.error('Bulk DOF CM update failed:', err);
+      })
+      .bulkUpdateFlightDof(window.globalSelectedFlights, newDof);
+  };
+
+  // =========================================================
+  // DATA SAVING
+  // =========================================================
+  window.saveData = function (rowIdx, colIdx, inputElem, type) {
+    let finalValue = type === 'date' ? parseToDbDate(inputElem.value) : inputElem.value;
+    inputElem.style.borderColor = "var(--status-warning)"; 
+    inputElem.style.boxShadow = "0 0 0 2px var(--status-warning-glow)";
+    
+    const dbStat = document.getElementById('sys-db-status'); 
+    if (dbStat) { 
+      dbStat.innerText = 'SYNCING...'; 
+      dbStat.style.color = 'var(--status-warning)'; 
+    }
+
+    google.script.run
+      .withSuccessHandler(() => {
+        inputElem.style.borderColor = "var(--status-safe)"; 
+        inputElem.style.boxShadow = "none"; 
+        setTimeout(() => { inputElem.style.borderColor = "transparent"; }, 1500); 
+        if (dbStat) { dbStat.innerText = '✓'; dbStat.style.color = 'var(--status-safe)'; }
+      
+        let flight = window.allDbFlights.find(f => f && f.rowIdx === rowIdx);
+        if (flight) {
+          if (colIdx === 1) flight.FLIGHT = finalValue; 
+          if (colIdx === 2) flight.DEP = finalValue; 
+          if (colIdx === 3) flight.ARR = finalValue; 
+          if (colIdx === 4) flight.STD = finalValue; 
+          if (colIdx === 5) flight.STA = finalValue; 
+          if (colIdx === 16) flight.DOF = finalValue;
+          if (colIdx === 14 && inputElem.classList.contains('edit-atc')) { 
+            flight.ATC = finalValue; 
+            if (finalValue === 'SENT') { 
+              inputElem.className = "edit-input edit-atc atc-sent"; 
+              inputElem.options[1].text = '🟢'; 
+              inputElem.options[0].text = '🔴'; 
+            } else { 
+              inputElem.className = "edit-input edit-atc atc-unsent"; 
+            } 
+          }
+        }
+      })
+      .withFailureHandler(err => {
+        if (dbStat) { dbStat.innerText = 'ERROR'; dbStat.style.color = 'var(--status-critical)'; }
+        inputElem.style.borderColor = "var(--status-critical)";
+        inputElem.style.boxShadow = "0 0 0 2px var(--status-critical-glow)";
+        alert('Failed to save changes to flight data. Please try again.');
+        console.error('Flight cell save failed:', err);
+      })
+      .saveFlightEdit(rowIdx, colIdx, finalValue);
+  };
+
+  // =========================================================
+  // MODAL MANAGEMENT
+  // =========================================================
+  window.uiOpenAddFlightModal = function () {
+    const modal = document.getElementById('modal-load-flight');
+    if (modal) modal.style.display = 'flex';
+    window.uiSwitchModalTab('db');
+  };
+
+  window.uiCloseAddFlightModal = function () {
+    const modal = document.getElementById('modal-load-flight');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.uiSwitchModalTab = function (tab) {
+    const btnDb = document.getElementById('tab-btn-db');
+    const btnNew = document.getElementById('tab-btn-new');
+    const contentDb = document.getElementById('modal-content-db');
+    const contentNew = document.getElementById('modal-content-new');
+
+    if (btnDb) btnDb.classList.remove('active');
+    if (btnNew) btnNew.classList.remove('active');
+    if (contentDb) contentDb.style.display = 'none';
+    if (contentNew) contentNew.style.display = 'none';
+
+    const activeBtn = document.getElementById(`tab-btn-${tab}`);
+    const activeContent = document.getElementById(`modal-content-${tab}`);
+
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activeContent) activeContent.style.display = 'block';
+
+    if (tab === 'db') {
+      const searchInput = document.getElementById('db-search-input');
+      if (searchInput) searchInput.value = "";
+      window.populateDbModalList();
+    }
+    if (tab === 'new') window.populateRegDropdown();
+  };
+
+  window.populateDbModalList = function () {
+    const container = document.getElementById('db-list-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    let safeDbFlights = Array.isArray(window.allDbFlights) ? window.allDbFlights : [];
+    let safeBoardIds = Array.isArray(activeBoardRowIds) ? activeBoardRowIds : [];
+    let unboarded = safeDbFlights.filter(f => f && !safeBoardIds.includes(f.rowIdx));
+
+    if (unboarded.length === 0) {
+      container.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);font-family:var(--font-mono);font-size:11px;opacity:0.6;">[ SYSTEM : NO UNBOARDED FLIGHTS DETECTED ]</div>';
+      return;
+    }
+
+    unboarded.forEach(f => {
+      const item = document.createElement('label');
+      item.className = 'db-list-item';
+      item.innerHTML = `
+      <input type="checkbox" class="modal-db-cb cb-action" value="${f.rowIdx}">
+      <span class="db-flt-tag">${f.FLIGHT || 'N/A'}</span>
+      <div class="db-route-tag">
+        <span style="color:var(--data-dep)">${f.DEP || '---'}</span>
+        <span style="opacity:0.3; font-size:10px;">➔</span>
+        <span style="color:var(--data-arr)">${f.ARR || '---'}</span>
+      </div>
+      <span class="db-dof-tag">${formatToUiDate(f.DOF)}</span>
+    `;
+      container.appendChild(item);
+    });
+  };
+
+  window.filterDbList = function () {
+    const input = document.getElementById('db-search-input');
+    if (!input) return;
+    const query = input.value.toUpperCase();
+    document.querySelectorAll('.db-list-item').forEach(item => {
+      item.style.display = item.innerText.toUpperCase().includes(query) ? 'flex' : 'none';
+    });
+  };
+
+  window.addSelectedFromDb = function () {
+    const checked = document.querySelectorAll('.modal-db-cb:checked');
+    if (checked.length === 0) return alert("Please select at least one flight.");
+
+    checked.forEach(cb => {
+      const id = parseInt(cb.value);
+      if (!activeBoardRowIds.includes(id)) activeBoardRowIds.push(id);
+    });
+    renderBoard();
+    window.uiCloseAddFlightModal();
+  };
+
+  window.populateRegDropdown = function () {
+    const regSel = document.getElementById('fn-reg');
+    if (!regSel) return;
+    if (regSel.options.length <= 1) {
+      let safeAcList = Array.isArray(window.acList) ? window.acList : [];
+      regSel.innerHTML = `<option value="">- SELECT A/C -</option>` + safeAcList.map(ac => `<option value="${ac}">${ac}</option>`).join('');
+    }
+  };
+
+  window.submitNewFlight = function (e) {
+    if (e) e.preventDefault();
+    const btn = document.getElementById('btn-submit-new');
+    if (btn) { btn.innerText = "INJECTING..."; btn.disabled = true; }
+
+    let formatTimeField = (val) => {
+      let v = val.replace(/[^0-9]/g, '');
+      return v.length === 4 ? v.substring(0, 2) + ':' + v.substring(2, 4) : val;
+    };
+
+    const formData = {
+      FLT_NO: document.getElementById('fn-flt').value,
+      DOF: document.getElementById('fn-dof').value,
+      DEP: document.getElementById('fn-dep').value.toUpperCase(),
+      ARR: document.getElementById('fn-arr').value.toUpperCase(),
+      STD: formatTimeField(document.getElementById('fn-std').value),
+      STA: formatTimeField(document.getElementById('fn-sta').value),
+      REG: document.getElementById('fn-reg').value,
+      ALT: document.getElementById('fn-alt').value.toUpperCase(),
+      ATC: document.getElementById('fn-atc').value,
+      TAF_DEP: document.getElementById('fn-tafdep').value,
+      TAF_ARR: document.getElementById('fn-tafarr').value,
+      CGO: document.getElementById('fn-cgo').value,
+      REMARK: document.getElementById('fn-rem').value
+    };
+
+    google.script.run
+      .withSuccessHandler((updatedDb) => {
+        window.allDbFlights = Array.isArray(updatedDb.flights) ? updatedDb.flights : [];
+        if (window.allDbFlights.length > 0) {
+          activeBoardRowIds.push(window.allDbFlights[window.allDbFlights.length - 1].rowIdx);
+        }
+        if (btn) { btn.innerText = "COMMIT TO DATABASE"; btn.disabled = false; }
+        const form = document.getElementById('modal-content-new');
+        if (form) form.reset();
+        renderBoard();
+        window.uiCloseAddFlightModal();
+      })
+      .withFailureHandler(err => {
+        if (btn) { btn.innerText = "COMMIT TO DATABASE"; btn.disabled = false; }
+        alert('Failed to add flight. Please try again.');
+        console.error('Add flight failed:', err);
+      })
+      .addNewFlightToDb(formData);
+  };
+
+  // =========================================================
+  // ENR MODAL
+  // =========================================================
+  window.openEnrModal = function (rowIdx) {
+    let safeDbFlights = Array.isArray(window.allDbFlights) ? window.allDbFlights : [];
+    const flight = safeDbFlights.find(f => f && f.rowIdx === rowIdx);
+    if (!flight) return;
+    document.getElementById('enr-rowidx').value = rowIdx;
+    document.getElementById('enr-1').value = flight.ENR1 || "";
+    document.getElementById('enr-2').value = flight.ENR2 || "";
+    document.getElementById('enr-3').value = flight.ENR3 || "";
+    document.getElementById('modal-enr').style.display = 'flex';
+  };
+  window.closeEnrModal = function () { document.getElementById('modal-enr').style.display = 'none'; };
+  window.submitEnr = function (e) {
+    if (e) e.preventDefault();
+    const btn = document.getElementById('btn-submit-enr');
+    if (!btn) return;
+    btn.innerText = "SAVING..."; btn.disabled = true;
+    const rowIdx = parseInt(document.getElementById('enr-rowidx').value);
+    const enr1 = document.getElementById('enr-1').value.toUpperCase();
+    const enr2 = document.getElementById('enr-2').value.toUpperCase();
+    const enr3 = document.getElementById('enr-3').value.toUpperCase();
+    google.script.run
+      .withSuccessHandler(() => {
+        let safeDbFlights = Array.isArray(window.allDbFlights) ? window.allDbFlights : [];
+        let flight = safeDbFlights.find(f => f && f.rowIdx === rowIdx);
+        if (flight) { flight.ENR1 = enr1; flight.ENR2 = enr2; flight.ENR3 = enr3; }
+        btn.innerText = "SAVE ENR"; btn.disabled = false;
+        window.closeEnrModal();
+      })
+      .withFailureHandler(err => {
+        btn.innerText = "SAVE ENR"; btn.disabled = false;
+        alert('Failed to save ENR data. Please try again.');
+        console.error('Save ENR failed:', err);
+      })
+      .saveFlightEnr(rowIdx, enr1, enr2, enr3);
+  };
+
+  // =========================================================
+  // ROUTE MODAL
+  // =========================================================
+  let currentActiveFlightRoutes = [];
+  let currentRouteFlightRowIdx = null;
+
+  window.openRouteModal = function (rowIdx) {
+    let safeDbFlights = Array.isArray(window.allDbFlights) ? window.allDbFlights : [];
+    const flight = safeDbFlights.find(f => f && f.rowIdx === rowIdx);
+    if (!flight) return;
+
+    currentRouteFlightRowIdx = rowIdx;
+    const title = document.getElementById('route-flt-title');
+    if (title) title.innerText = `${flight.DEP || ''} ➔ ${flight.ARR || ''}`;
+    
+    const depInput = document.getElementById('route-dep');
+    const arrInput = document.getElementById('route-arr');
+    if (depInput) depInput.value = flight.DEP || '';
+    if (arrInput) arrInput.value = flight.ARR || '';
+
+    currentActiveFlightRoutes = Array.isArray(flight.ROUTES) ? flight.ROUTES : [];
+    const selector = document.getElementById('route-selector');
+    if (!selector) return;
+    selector.innerHTML = '';
+
+    if (currentActiveFlightRoutes.length === 0) {
+      selector.innerHTML = `<option value="__NEW_PRIMARY__">Create Primary Route</option>`;
+    } else {
+      currentActiveFlightRoutes.forEach(r => {
+        if (!r) return;
+        let isPrimary = String(r.ID).endsWith('10');
+        let label = isPrimary ? `${r.ID} (Primary)` : `${r.ID} (Alternate)`;
+        selector.innerHTML += `<option value="${r.ID}">${label}</option>`;
+      });
+      selector.innerHTML += `<option value="__NEW_ALT__">+ Add Alternate Route</option>`;
+    }
+
+    let activeId = flight.ACTIVE_ROUTE_ID || (flight.DEP + flight.ARR + '10');
+    setTimeout(() => {
+      if (selector.querySelector(`option[value="${activeId}"]`)) {
+        selector.value = activeId;
+      }
+      window.handleRouteSelectionChange();
+    }, 10);
+
+    const modal = document.getElementById('modal-route');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.handleRouteSelectionChange = function () {
+    const selector = document.getElementById('route-selector');
+    const idInput = document.getElementById('route-id-input');
+    const depInput = document.getElementById('route-dep');
+    const arrInput = document.getElementById('route-arr');
+    if (!selector || !idInput || !depInput || !arrInput) return;
+
+    const selectedId = selector.value;
+    const dep = depInput.value;
+    const arr = arrInput.value;
+
+    if (selectedId === '__NEW_PRIMARY__') {
+      idInput.value = dep + arr + '10'; idInput.readOnly = false;
+      idInput.style.backgroundColor = "var(--bg-void)"; idInput.style.color = "var(--text-primary)"; idInput.style.borderColor = "var(--accent-primary)";
+      window.clearRouteForm();
+    } else if (selectedId === '__NEW_ALT__') {
+      let maxSuffix = 9;
+      currentActiveFlightRoutes.forEach(r => {
+        if (!r) return; let sfx = parseInt(String(r.ID).slice(-2)); if (!isNaN(sfx) && sfx > maxSuffix) maxSuffix = sfx;
+      });
+      idInput.value = dep + arr + (maxSuffix + 1); idInput.readOnly = false;
+      idInput.style.backgroundColor = "var(--bg-void)"; idInput.style.color = "var(--text-primary)"; idInput.style.borderColor = "var(--accent-primary)";
+      window.clearRouteForm();
+    } else {
+      idInput.value = selectedId; idInput.readOnly = true;
+      idInput.style.backgroundColor = "rgba(255,255,255,0.05)"; idInput.style.color = "var(--text-muted)"; idInput.style.borderColor = "var(--border-light)";
+
+      const existingRoute = currentActiveFlightRoutes.find(r => r && r.ID === selectedId);
+      if (existingRoute) {
+        document.getElementById('route-dep-rwy').value = existingRoute.DEP_RWY || '';
+        document.getElementById('route-sid').value = existingRoute.SID || '';
+        document.getElementById('route-waypoint').value = existingRoute.WAYPOINT_SEQ || '';
+        document.getElementById('route-star').value = existingRoute.STAR || '';
+        document.getElementById('route-arr-rwy').value = existingRoute.ARR_RWY || '';
+      }
+    }
+  };
+
+  window.clearRouteForm = function () { 
+    document.getElementById('route-dep-rwy').value = ''; 
+    document.getElementById('route-sid').value = ''; 
+    document.getElementById('route-waypoint').value = ''; 
+    document.getElementById('route-star').value = ''; 
+    document.getElementById('route-arr-rwy').value = ''; 
+  };
+  
+  window.closeRouteModal = function () { 
+    const modal = document.getElementById('modal-route');
+    if (modal) modal.style.display = 'none'; 
+  };
+
+  window.submitRoute = function () {
+    const idInput = document.getElementById('route-id-input');
+    if (!idInput) return;
+    const finalId = idInput.value.toUpperCase().trim();
+    if (!finalId) { alert("ROUTE ID cannot be empty."); return; }
+
+    const btn = document.getElementById('btn-save-route'); 
+    if (btn) { btn.innerText = "SAVING DB..."; btn.disabled = true; }
+
+    const routePayload = {
+      ID: finalId, 
+      DEP_AIRPORT: document.getElementById('route-dep').value, 
+      ARR_AIRPORT: document.getElementById('route-arr').value,
+      DEP_RWY: document.getElementById('route-dep-rwy').value.toUpperCase(), 
+      SID: document.getElementById('route-sid').value.toUpperCase(),
+      WAYPOINT_SEQ: document.getElementById('route-waypoint').value.toUpperCase(), 
+      STAR: document.getElementById('route-star').value.toUpperCase(), 
+      ARR_RWY: document.getElementById('route-arr-rwy').value.toUpperCase()
+    };
+
+    google.script.run
+      .withSuccessHandler((res) => {
+        const dashboardData = res.dashboardData || {};
+        window.allDbFlights = Array.isArray(dashboardData.flights) ? dashboardData.flights : [];
+        if (res.allRoutes && typeof renderRouteManagerTable === 'function') {
+          window.allRoutesCache = res.allRoutes;
+          renderRouteManagerTable(res.allRoutes);
+        }
+        renderBoard();
+        if (btn) { btn.innerText = "💾 SAVE ROUTE TO DB"; btn.disabled = false; }
+        window.closeRouteModal();
+      })
+      .withFailureHandler(err => {
+        if (btn) { btn.innerText = "💾 SAVE ROUTE TO DB"; btn.disabled = false; }
+        alert('Failed to save route profile. Please try again.');
+        console.error('Save route failed:', err);
+      })
+      .saveFlightRoute(routePayload);
+  };
+
+  window.setAsActiveRoute = function () {
+    const idInput = document.getElementById('route-id-input');
+    if (!idInput) return;
+    const finalId = idInput.value.toUpperCase().trim();
+    if (!finalId || finalId.includes('__NEW')) {
+      alert("Warning: Please save the new route to the database first using the save button."); return;
+    }
+
+    const btn = document.getElementById('btn-set-active');
+    if (btn) { btn.innerText = "UPDATING..."; btn.disabled = true; }
+
+    google.script.run
+      .withSuccessHandler((newData) => {
+        window.allDbFlights = Array.isArray(newData.flights) ? newData.flights : [];
+        renderBoard();
+        if (btn) { btn.innerText = "✅ SET AS ACTIVE ROUTE"; btn.disabled = false; }
+        window.closeRouteModal();
+      })
+      .withFailureHandler(err => {
+        if (btn) { btn.innerText = "✅ SET AS ACTIVE ROUTE"; btn.disabled = false; }
+        alert('Failed to set active route. Please try again.');
+        console.error('Set active route failed:', err);
+      })
+      .setActiveFlightRoute(currentRouteFlightRowIdx, finalId);
+  };
+
+  // =========================================================
+  // MISC ACTIONS
+  // =========================================================
+  window.manualSync = function () { initFlightData(); };
+  
+  window.toggleFullscreen = function () { 
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen(); 
+    else document.exitFullscreen(); 
+  };
+  
+  window.toggleCompactMode = function () {
+    isCompact = !isCompact;
+    const table = document.getElementById('flight-table');
+    if (!table) return;
+    if (isCompact) table.classList.add('lido-compact');
+    else table.classList.remove('lido-compact');
+  };
+
+  window.toggleTheme = function () {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    try {
+      localStorage.setItem('occ_theme_pref', newTheme);
+    } catch (e) {
+      console.warn('LocalStorage blocked:', e);
+    }
+  };
+
+  window.hideFlight = function (rowIdx) {
+    if (!confirm("Are you sure you want to hide this flight from the Active Board?")) return;
+    window.activeBoardRowIds = (window.activeBoardRowIds || []).filter(id => id !== rowIdx);
+    renderBoard();
+  };
+
+
+  window.clearBoard = function () {
+    if (confirm("WARNING: Clear the entire Active Board? (Does not delete DB)")) {
+      window.activeBoardRowIds = [];
+      window.globalSelectedFlights = [];
+      renderBoard();
+    }
+  };
+
+  // =========================================================
+  // AIRPORT NOTES MODAL
+  // =========================================================
+  window.openAirportNotesModal = function () {
+    const tooltip = document.getElementById('global-airport-tooltip');
+    if (tooltip) tooltip.classList.remove('visible');
+
+    const title = document.getElementById('modal-apt-icao-title');
+    if (title) title.innerText = currentTooltipIcao;
+
+    const container = document.getElementById('apt-notes-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    let notes = window.airportNotes.filter(n => n.ICAO_CODE === currentTooltipIcao);
+    if (notes.length === 0) window.addNoteRow();
+    else notes.forEach(n => window.addNoteRow(n));
+
+    const modal = document.getElementById('modal-airport-notes');
+    if (modal) modal.style.display = 'flex';
+  };
+
+  window.closeAirportNotesModal = function () {
+    const modal = document.getElementById('modal-airport-notes');
+    if (modal) modal.style.display = 'none';
+  };
+
+  window.addNoteRow = function (data = { DAY_RANGE: '-', START_TIME: '', END_TIME: '', NOTE_TEXT: '' }) {
+    const container = document.getElementById('apt-notes-container');
+    if (!container) return;
+    const div = document.createElement('div');
+    div.className = 'apt-modal-row';
+    div.innerHTML = `
+      <input type="text" class="modal-input apt-in-day" value="${data.DAY_RANGE}" placeholder="MON-FRI">
+      <input type="text" class="modal-input apt-in-start" value="${data.START_TIME}" placeholder="0000" maxlength="5">
+      <input type="text" class="modal-input apt-in-end" value="${data.END_TIME}" placeholder="2359" maxlength="5">
+      <input type="text" class="modal-input apt-in-text" value="${data.NOTE_TEXT}" placeholder="Note details...">
+      <button class="btn-hide" onclick="this.parentElement.remove()" title="Remove Note">✕</button>
+    `;
+    container.appendChild(div);
+  };
+
+  window.saveAirportNotesFromModal = function () {
+    const btn = document.getElementById('btn-save-notes');
+    if (btn) { btn.innerText = 'SAVING...'; btn.disabled = true; }
+
+    const rows = document.querySelectorAll('.apt-modal-row');
+    const newNotes = [];
+
+    rows.forEach(row => {
+      const day = row.querySelector('.apt-in-day');
+      const start = row.querySelector('.apt-in-start');
+      const end = row.querySelector('.apt-in-end');
+      const text = row.querySelector('.apt-in-text');
+
+      if (day && start && end && text) {
+        newNotes.push({
+          ICAO_CODE: currentTooltipIcao,
+          DAY_RANGE: day.value.toUpperCase(),
+          START_TIME: start.value.replace(/[^0-9]/g, ''),
+          END_TIME: end.value.replace(/[^0-9]/g, ''),
+          NOTE_TEXT: text.value,
+          TYPE: 'RESTRICTION'
+        });
+      }
+    });
+
+    google.script.run.withSuccessHandler((updatedNotes) => {
+      window.airportNotes = Array.isArray(updatedNotes) ? updatedNotes : [];
+      if (btn) { btn.innerText = '💾 SAVE NOTES'; btn.disabled = false; }
+      window.closeAirportNotesModal();
+    }).withFailureHandler((err) => {
+      alert("Error saving notes: " + err);
+      if (btn) { btn.innerText = '💾 SAVE NOTES'; btn.disabled = false; }
+    }).saveAirportNotes(currentTooltipIcao, newNotes);
+  };
+
+  // =========================================================
+  // QUICK STATS CALCULATION
+  // =========================================================
+  window.updateQuickStats = function() {
+    try {
+      const total = window.activeBoardRowIds.length;
+      const safeDbFlights = Array.isArray(window.allDbFlights) ? window.allDbFlights : [];
+      const boardFlights = window.activeBoardRowIds.map(id => safeDbFlights.find(f => f && f.rowIdx === id)).filter(Boolean);
+      
+      const atcSent = boardFlights.filter(f => f.ATC === 'SENT').length;
+      const atcUnsent = boardFlights.filter(f => f.ATC === 'UNSENT' || f.ATC === '1').length;
+      const totalDb = safeDbFlights.length;
+      const hidden = totalDb - total;
+
+      if (document.getElementById('stat-total')) document.getElementById('stat-total').innerText = total;
+      if (document.getElementById('stat-atc-sent')) document.getElementById('stat-atc-sent').innerText = atcSent;
+      if (document.getElementById('stat-atc-unsent')) document.getElementById('stat-atc-unsent').innerText = atcUnsent;
+      if (document.getElementById('stat-hidden')) document.getElementById('stat-hidden').innerText = Math.max(0, hidden);
+    } catch (e) {
+      console.warn('Failed to update quick stats:', e);
+    }
+  };
+
+  // =========================================================
+  // CGO SYNC ACTION
+  // =========================================================
+  window.syncCgoData = function() {
+    const loader = document.getElementById('flight-loading');
+    if (loader) {
+      loader.innerText = '[ SYSTEM : SYNCING CARGO MANIFEST... ]';
+      loader.style.display = 'block';
+    }
+    
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withFailureHandler(err => {
+          if (loader) loader.style.display = 'none';
+          alert('CGO Sync Failed: ' + (err.message || err));
+        })
+        .withSuccessHandler(data => {
+          if (loader) loader.style.display = 'none';
+          if (data) {
+            window.allDbFlights = Array.isArray(data.flights) ? data.flights : [];
+            window.acList = Array.isArray(data.acList) ? data.acList : [];
+            window.renderBoard();
+          }
+        })
+        .syncCgoData();
+    }
+  };
+
+  // Final Initialization Trigger
+  (function() {
+    console.log('[SYSTEM] Script block reached EOF. Triggering init...');
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(runInitSequence, 50);
+    } else {
+      window.addEventListener('load', runInitSequence);
+    }
+  })();
+</script>
